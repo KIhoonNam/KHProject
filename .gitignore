@@ -77,5 +77,4 @@ Platforms/HoloLens/Config/HoloLensEngine.ini
 .vsconfig
 WindowsServer/*
 Windows/*
-Content/__ExternalActors__/*
-Content/__ExternalObjects__/*
+Content/*
