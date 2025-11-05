@@ -24,8 +24,10 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	virtual void PossessedBy(AController* NewController) override;
-	
+
+	virtual void OnRep_PlayerState() override;
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<UGameplayAbility> FireAbility;
@@ -44,7 +46,12 @@ protected:
 
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Look(const FInputActionValue& InputActionValue);
-	
+
+	void OnDownedTagChanged(FGameplayTag GameplayTag, int count);
+
+	virtual void HandleDownedState();
+
+	virtual void HandleRecoveredState();
 	// Enhanced Input Action 변수 (프로젝트의 IA 에셋을 사용하세요)
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_Fire;

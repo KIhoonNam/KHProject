@@ -41,21 +41,29 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 	Super::PostGameplayEffectExecute(Data);
 
 
+	UAbilitySystemComponent* TargetASC = &Data.Target;
+	if (!TargetASC)
+	{
+		return;
+	}
+
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
+	
 		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
-		
+
 		if (GetHealth() <= 0.0f)
 		{
-			// --- 사망(Death) 또는 빈사(Downed) 처리 로직 ---
+	
+			const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
 			
-            
-			// (GAS 방식) 또는, 더 좋은 방법은 "Status.Downed" GameplayTag를 owning actor에게 적용하는 것입니다.
-			// FGameplayTagContainer TagContainer;
-			// TagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed")));
-			// Data.Target.ApplyGameplayEffectToSelf(/* 이 태그를 적용하는 GameplayEffect */, 1.0f, Data.Target.MakeEffectContext());
-
-			// TODO: [기훈님] 여기에 사망/빈사 처리 로직을 연결하세요.
+			if (!TargetASC->HasMatchingGameplayTag(DownedTag))
+			{
+				TargetASC->AddLooseGameplayTag(DownedTag);
+				
+				//TargetASC->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(FName("Event.Player.Downed")), ...);
+			}
+			
 		}
 	}
 }

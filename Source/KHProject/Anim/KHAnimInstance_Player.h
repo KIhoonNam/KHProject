@@ -20,9 +20,15 @@ public:
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	float fDirection;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	bool bIsDowned;
 public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-	
+
+
+public:
+	void SetIsDowned(bool _bIsDown) {bIsDowned = _bIsDown;};
 
 	
 };

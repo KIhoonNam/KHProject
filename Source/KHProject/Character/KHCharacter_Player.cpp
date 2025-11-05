@@ -7,7 +7,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "KHAttributeSet_Character.h"
+#include "Anim/KHAnimInstance_Player.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 
@@ -84,8 +87,23 @@ void AKHCharacter_Player::PossessedBy(AController* NewController)
 		);
 		
 		AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+		FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
+		EGameplayTagEventType::NewOrRemoved
+	).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
 	}
 	
+}
+
+void AKHCharacter_Player::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AbilitySystemComponent->RegisterGameplayTagEvent(
+		FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
+		EGameplayTagEventType::NewOrRemoved
+	).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
 }
 
 void AKHCharacter_Player::Input_Ability_Pressed(EAbilityInputID InputID)
@@ -143,7 +161,72 @@ void AKHCharacter_Player::Input_Look(const FInputActionValue& InputActionValue)
 	}
 }
 
+void AKHCharacter_Player::OnDownedTagChanged(FGameplayTag GameplayTag, int count)
+{
+	if (count > 0)
+	{
+
+		//HandleDownedState();
+	}
+	else 
+	{
+		//HandleRecoveredState();
+	}
+}
+
+void AKHCharacter_Player::HandleDownedState()
+{
+	if (AController* pController = GetController())
+	{
+		pController->DisableInput(Cast<APlayerController>(pController));
+		pController->SetIgnoreLookInput(true);
+	}
+    
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->SetComponentTickEnabled(false);
+	}
+
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	if (UKHAnimInstance_Player* pAnim = Cast<UKHAnimInstance_Player>(GetMesh()->GetAnimInstance()))
+	{
+		pAnim->SetIsDowned(true);
+	}
+}
+
+void AKHCharacter_Player::HandleRecoveredState()
+{
+	if (AController* pController = GetController())
+	{
+		pController->EnableInput(Cast<APlayerController>(pController));
+		pController->SetIgnoreLookInput(false);
+	}
+	
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+    
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		GetCharacterMovement()->SetComponentTickEnabled(true);
+	}
+
+	if (UKHAnimInstance_Player* pAnim = Cast<UKHAnimInstance_Player>(GetMesh()->GetAnimInstance()))
+	{
+		pAnim->SetIsDowned(false);
+	}
+}
+
 void AKHCharacter_Player::Multicast_PlayImpactFX_Implementation(const FVector_NetQuantize& HitLocation,
-                                                                const FVector_NetQuantizeNormal& HitNormal)
+const FVector_NetQuantizeNormal& HitNormal)
 {
 }
