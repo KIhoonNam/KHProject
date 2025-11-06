@@ -2,7 +2,7 @@
 
 
 #include "GAS/KHGameplayAbility_AIMelee.h"
-#include "AbilityTask_PlayMontageAndWait.h"
+#include "AbilityTask_WaitDelay.h"
 #include "AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AIController.h"
@@ -27,30 +27,21 @@ void UKHGameplayAbility_AIMelee::ActivateAbility(const FGameplayAbilitySpecHandl
 		return;
 	}
 
-	// --- 태스크 1: 몽타주 재생 ---
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-		this, NAME_None, AttackMontage, 1.0f, NAME_None, false
-	);
-
-	if (MontageTask == nullptr)
+	AKHCharacter_MonsterBase* AICharacter = Cast<AKHCharacter_MonsterBase>(ActorInfo->AvatarActor.Get());
+	if (!AICharacter)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	// 몽타주가 종료되면 (성공/취소/중단) OnMontageEnded 함수를 호출합니다.
-	MontageTask->OnCompleted.AddDynamic(this, &UKHGameplayAbility_AIMelee::OnMontageEnded);
-	MontageTask->OnInterrupted.AddDynamic(this, &UKHGameplayAbility_AIMelee::OnMontageEnded);
-	MontageTask->OnCancelled.AddDynamic(this, &UKHGameplayAbility_AIMelee::OnMontageEnded);
-	// 몽타주 재생을 "준비"시킵니다.
-	MontageTask->ReadyForActivation();
+	AICharacter->Multicast_PlayMeleeAttackMontage(AttackMontage);
 
-	// --- 태스크 2: 이벤트 대기 ---
+
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this,               // 이 어빌리티가 소유
-		HitCheckEventTag,   // [핵심] 이 태그가 오는지 대기합니다
-		nullptr,            // (Optional) 이벤트의 'Source' (지금은 필요 없음)
-		true                // 'Owner'에게서만 이벤트를 수신
+		this,               
+		HitCheckEventTag,   
+		nullptr,            
+		true                
 	);
 
 	if (EventTask == nullptr)
@@ -59,10 +50,21 @@ void UKHGameplayAbility_AIMelee::ActivateAbility(const FGameplayAbilitySpecHandl
 		return;
 	}
 
-	// [핵심] 이벤트가 수신되면, OnHitCheckEvent C++ 함수를 호출합니다.
+
 	EventTask->EventReceived.AddDynamic(this, &UKHGameplayAbility_AIMelee::OnHitCheckEvent);
-	// 이벤트 대기를 "준비"시킵니다.
+
 	EventTask->ReadyForActivation();
+
+	const float MontageDuration = AttackMontage->GetPlayLength();
+    
+	
+	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, MontageDuration);
+	if (DelayTask)
+	{
+		// 딜레이가 끝나면 OnMontageEnded (기존에 C++로 만든 함수)를 호출합니다.
+		DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_AIMelee::OnMontageEnded);
+		DelayTask->ReadyForActivation();
+	}
 }
 
 
@@ -81,9 +83,9 @@ void UKHGameplayAbility_AIMelee::OnHitCheckEvent(FGameplayEventData Payload)
 		
 		UKismetSystemLibrary::SphereTraceSingle(GetWorld(),
 			GetActorInfo().AvatarActor->GetActorLocation(),
-			TargetPlayer->GetActorLocation(),
-			50.0f, // 반지름
-			UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel1), // 충돌 채널
+			GetActorInfo().AvatarActor->GetActorLocation() + GetActorInfo().AvatarActor->GetActorForwardVector()*25.f,
+			50.0f, 
+			UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel1),
 			false,
 			TArray<AActor*>(),
 			EDrawDebugTrace::ForDuration,

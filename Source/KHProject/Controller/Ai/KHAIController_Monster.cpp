@@ -3,7 +3,10 @@
 
 #include "Controller/Ai/KHAIController_Monster.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "KHCharacter_MonsterBase.h"
+#include "KHCharacter_Player.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -72,11 +75,20 @@ void AKHAIController_Monster::StopBehaviorTree()
 
 void AKHAIController_Monster::OnTargetPerceived(AActor* Actor, FAIStimulus Stimulus)
 {
+	UObject* TargetActorObject = BlackboardComponent->GetValueAsObject(TEXT("TargetPlayer"));
+	
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		if (Actor == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+		AKHCharacter_Player* SensedPlayer = Cast<AKHCharacter_Player>(Actor);
+
+		if (SensedPlayer && TargetActorObject == nullptr)
 		{
-			SetTargetPlayer(Actor);
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SensedPlayer);
+            
+			if (TargetASC && !TargetASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed"))))
+			{
+				SetTargetPlayer(SensedPlayer);
+			}
 		}
 	}
 	else 

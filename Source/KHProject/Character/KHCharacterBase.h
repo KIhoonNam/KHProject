@@ -14,7 +14,8 @@ enum class EAbilityInputID : uint8
 	None        UMETA(DisplayName = "None"),
 	Confirm     UMETA(DisplayName = "Confirm"),
 	Cancel      UMETA(DisplayName = "Cancel"),
-	Fire        UMETA(DisplayName = "Fire") 
+	Fire        UMETA(DisplayName = "Fire"),
+	Revive    UMETA(DisplayName = "Revive")
 };
 
 class UAbilitySystemComponent;

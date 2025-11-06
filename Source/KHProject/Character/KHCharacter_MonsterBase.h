@@ -23,6 +23,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TSubclassOf<UKHGameplayAbility_AIMelee> m_pAIMeleeAbility;
+
+public:
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayMeleeAttackMontage(UAnimMontage* MontageToPlay);
 public:
 	virtual void BeginPlay() override;
 

@@ -69,6 +69,7 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 		EnhancedInput->BindAction(IA_Fire, ETriggerEvent::Completed, this, &AKHCharacter_Player::Input_Ability_Released, EAbilityInputID::Fire);
 		EnhancedInput->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AKHCharacter_Player::Input_Move);
 		EnhancedInput->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AKHCharacter_Player::Input_Look);
+		EnhancedInput->BindAction(IA_Revive, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Revive);
 	}
 }
 
@@ -77,23 +78,73 @@ void AKHCharacter_Player::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	
-	if (AbilitySystemComponent && FireAbility)
+	if (AbilitySystemComponent)
 	{
-		FGameplayAbilitySpec FireAbilitySpec(
-			FireAbility, 
-			1.0f, 
-			static_cast<int32>(EAbilityInputID::Fire),
-			this // Owner
-		);
+		if (FireAbility)
+		{
+			FGameplayAbilitySpec FireAbilitySpec(
+				FireAbility, 
+				1.0f, 
+				static_cast<int32>(EAbilityInputID::Fire),
+				this // Owner
+			);
 		
-		AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+			AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+		}
 
+		if (ReviveAbility)
+		{
+			FGameplayAbilitySpec ReviveAbilitySpec(
+				ReviveAbility, 
+				1.0f, 
+				static_cast<int32>(EAbilityInputID::Revive),
+				this // Owner
+			);	
+		
+			AbilitySystemComponent->GiveAbility(ReviveAbilitySpec);
+		}
+			
 		AbilitySystemComponent->RegisterGameplayTagEvent(
 		FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
 		EGameplayTagEventType::NewOrRemoved
 	).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
+
+		AbilitySystemComponent->RegisterGameplayTagEvent(
+		FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")),
+		EGameplayTagEventType::NewOrRemoved
+	).AddUObject(this, &AKHCharacter_Player::OnChannelingTagChanged);
 	}
 	
+}
+
+void AKHCharacter_Player::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (AbilitySystemComponent == nullptr)
+	{
+		return;
+	}
+
+	if (IsLocallyControlled())
+	{
+		const FGameplayTag ChannelingTag = FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive"));
+        
+		if (AbilitySystemComponent->HasMatchingGameplayTag(ChannelingTag))
+		{
+			const float CurrentSpeed = GetCharacterMovement()->Velocity.Size();
+            
+			// [핵심] 움직였고, "아직 취소 요청을 보낸 적이 없다면"
+			if (CurrentSpeed > 0.0f && !bIsLocallyTryingToCancel)
+			{
+				// 1. 서버에 RPC를 "딱 한 번" 보냅니다.
+				Server_CancelAbilityWithTag(ChannelingTag);
+                
+				// 2. 플래그를 설정하여 다음 틱부터 RPC를 보내지 않도록 막습니다.
+				bIsLocallyTryingToCancel = true;
+			}
+		}
+	}
 }
 
 void AKHCharacter_Player::OnRep_PlayerState()
@@ -104,6 +155,24 @@ void AKHCharacter_Player::OnRep_PlayerState()
 		FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
 		EGameplayTagEventType::NewOrRemoved
 	).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
+
+	AbilitySystemComponent->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")),
+			EGameplayTagEventType::NewOrRemoved
+		).AddUObject(this, &AKHCharacter_Player::OnChannelingTagChanged);
+}
+
+void AKHCharacter_Player::Server_CancelAbilityWithTag_Implementation(FGameplayTag GameplayTag)
+{
+	FGameplayTagContainer TagsToCancelContainer;
+	TagsToCancelContainer.AddTag(GameplayTag);
+	
+	AbilitySystemComponent->CancelAbilities(&TagsToCancelContainer, nullptr, nullptr);
+}
+
+bool AKHCharacter_Player::Server_CancelAbilityWithTag_Validate(FGameplayTag GameplayTag)
+{
+	return GameplayTag.IsValid();
 }
 
 void AKHCharacter_Player::Input_Ability_Pressed(EAbilityInputID InputID)
@@ -113,7 +182,7 @@ void AKHCharacter_Player::Input_Ability_Pressed(EAbilityInputID InputID)
 	{
 		AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(InputID));
 
-		UE_LOG(LogTemp,Warning,TEXT("Helath %f"),AbilitySystemComponent->GetNumericAttribute(UKHAttributeSet_Character::GetHealthAttribute()))
+		UE_LOG(LogTemp,Warning,TEXT("Revive "))
 	}
 }
 
@@ -166,12 +235,21 @@ void AKHCharacter_Player::OnDownedTagChanged(FGameplayTag GameplayTag, int count
 	if (count > 0)
 	{
 
-		//HandleDownedState();
+		HandleDownedState();
 	}
 	else 
 	{
-		//HandleRecoveredState();
+		HandleRecoveredState();
 	}
+}
+
+void AKHCharacter_Player::OnChannelingTagChanged(FGameplayTag GameplayTag, int count)
+{
+	if (count == 0 && IsLocallyControlled())
+	{
+		bIsLocallyTryingToCancel = false;
+	}
+	
 }
 
 void AKHCharacter_Player::HandleDownedState()
@@ -192,7 +270,7 @@ void AKHCharacter_Player::HandleDownedState()
 
 	if (GetCapsuleComponent())
 	{
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 
 	if (UKHAnimInstance_Player* pAnim = Cast<UKHAnimInstance_Player>(GetMesh()->GetAnimInstance()))

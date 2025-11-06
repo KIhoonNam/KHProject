@@ -26,12 +26,20 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void PossessedBy(AController* NewController) override;
+	
+	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnRep_PlayerState() override;
+
+	UFUNCTION(Server, Reliable,WithValidation)
+	void Server_CancelAbilityWithTag(FGameplayTag GameplayTag);
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<UGameplayAbility> FireAbility;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	TSubclassOf<UGameplayAbility> ReviveAbility;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> DefaultInputMappingContext;
 
@@ -40,6 +48,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> DefaultSpringArmComponent;
+
+	
 protected:
 	void Input_Ability_Pressed(EAbilityInputID InputID);
 	void Input_Ability_Released(EAbilityInputID InputID);
@@ -49,6 +59,8 @@ protected:
 
 	void OnDownedTagChanged(FGameplayTag GameplayTag, int count);
 
+	void OnChannelingTagChanged(FGameplayTag GameplayTag, int count);
+	
 	virtual void HandleDownedState();
 
 	virtual void HandleRecoveredState();
@@ -62,6 +74,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_Look;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_Revive;
+	
+	bool bIsLocallyTryingToCancel;
+	
 public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayImpactFX(const FVector_NetQuantize& HitLocation, const FVector_NetQuantizeNormal& HitNormal);

@@ -16,6 +16,19 @@ float AKHCharacter_MonsterBase::GetHealth() const
 	return 0.0f;
 }
 
+
+void AKHCharacter_MonsterBase::Multicast_PlayMeleeAttackMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	if (MontageToPlay && GetMesh())
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->Montage_Play(MontageToPlay);
+		}
+	}
+}
+
 void AKHCharacter_MonsterBase::BeginPlay()
 {
 	Super::BeginPlay();
