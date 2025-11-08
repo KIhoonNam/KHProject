@@ -24,15 +24,17 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
-	
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnRep_PlayerState() override;
 
-	UFUNCTION(Server, Reliable,WithValidation)
-	void Server_CancelAbilityWithTag(FGameplayTag GameplayTag);
+	void OnASCInitialized();
+
+	FDelegateHandle DownedTagEventHandle;
+	FDelegateHandle ChannelingTagEventHandle;
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<UGameplayAbility> FireAbility;
@@ -49,7 +51,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> DefaultSpringArmComponent;
 
+
 	
+	bool bASCInitialized = false;
+
 protected:
 	void Input_Ability_Pressed(EAbilityInputID InputID);
 	void Input_Ability_Released(EAbilityInputID InputID);
@@ -82,4 +87,14 @@ protected:
 public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayImpactFX(const FVector_NetQuantize& HitLocation, const FVector_NetQuantizeNormal& HitNormal);
+
+	UFUNCTION(Server, Reliable,WithValidation)
+	void Server_CancelAbilityWithTag(FGameplayTag GameplayTag);
+
+public:
+	UPROPERTY(Replicated,  ReplicatedUsing = "OnRep_IsDowned",BlueprintReadOnly)
+	bool m_IsDowned;
+
+	UFUNCTION()
+	void OnRep_IsDowned();
 };

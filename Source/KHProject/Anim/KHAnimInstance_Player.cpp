@@ -22,6 +22,8 @@ void UKHAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 			float Speed = vecVelocity.Size2D();
 			bIsMove = Speed > 3.f;
 			fDirection = UKismetAnimationLibrary::CalculateDirection(vecVelocity, PlayerCharacter->GetActorRotation());
+			bIsDowned = PlayerCharacter->m_IsDowned;
+			
 		}
 	}
 }

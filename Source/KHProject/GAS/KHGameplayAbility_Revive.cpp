@@ -14,6 +14,8 @@ UKHGameplayAbility_Revive::UKHGameplayAbility_Revive()
 {
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Input.Interact")));
 
+	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")));
+	
 	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed")));
 }
 
@@ -104,6 +106,8 @@ void UKHGameplayAbility_Revive::ActivateAbility(const FGameplayAbilitySpecHandle
 	if (DelayTask)
 	{
 		DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_Revive::OnReviveComplete);
+
+		TargetASC_ToRevive = OwnerASC;
 		DelayTask->ReadyForActivation();
 	}
 	else
@@ -120,7 +124,11 @@ void UKHGameplayAbility_Revive::OnReviveComplete()
     
 	if (TargetASC)
 	{
-		TargetASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed")));
+		const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
+		FGameplayTagContainer DownedTagContainer;
+		DownedTagContainer.AddTag(DownedTag);
+		
+		TargetASC->RemoveActiveEffectsWithGrantedTags(DownedTagContainer);
 		
 		if (ReviveEffectClass)
 		{
@@ -157,6 +165,7 @@ void UKHGameplayAbility_Revive::EndAbility(const FGameplayAbilitySpecHandle Hand
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
+	
 	UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
 	if (OwnerASC)
 	{

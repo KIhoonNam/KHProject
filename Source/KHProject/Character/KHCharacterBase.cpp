@@ -18,9 +18,9 @@ AKHCharacterBase::AKHCharacterBase()
 	AbilitySystemComponent->SetIsReplicated(true);
 
 
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 	
-	AttributeSet = CreateDefaultSubobject<UKHAttributeSet_Character>(TEXT("AttributeSet")); // <--- [중요] 여기도 AttributeSet 이름으로 변경하세요.
+	AttributeSet = CreateDefaultSubobject<UKHAttributeSet_Character>(TEXT("AttributeSet"));
 }
 
 UAbilitySystemComponent* AKHCharacterBase::GetAbilitySystemComponent() const
@@ -60,14 +60,6 @@ void AKHCharacterBase::PossessedBy(AController* NewController)
 		return;
 	}
 	
-	if (APlayerState* PS = GetPlayerState())
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-	}
-	else
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	}
 
 	if (AbilitySystemComponent && BaseStatsEffect)
 	{
@@ -101,16 +93,16 @@ void AKHCharacterBase::PossessedBy(AController* NewController)
 void AKHCharacterBase::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
-
+	
 	if (!AbilitySystemComponent)
 	{
 		return;
 	}
 	
-	if (APlayerState* PS = GetPlayerState())
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-	}
+	// if (APlayerState* PS = GetPlayerState())
+	// {
+	// 	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+	// }
 }
 
 

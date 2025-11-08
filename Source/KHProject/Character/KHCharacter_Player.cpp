@@ -7,10 +7,12 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "KHAttributeSet_Character.h"
+#include "UnrealNetwork.h"
 #include "Anim/KHAnimInstance_Player.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 
 
@@ -25,6 +27,14 @@ AKHCharacter_Player::AKHCharacter_Player()
 	DefaultSpringArmComponent->bUsePawnControlRotation = true;
 
 	DefaultCameraComponent->SetupAttachment(DefaultSpringArmComponent);
+
+	bASCInitialized = false;
+
+	DownedTagEventHandle.Reset();
+	ChannelingTagEventHandle.Reset();
+
+	
+	
 }
 
 void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -73,54 +83,61 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 	}
 }
 
+void AKHCharacter_Player::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (GetMesh())
+	{
+		// 서버(및 모든 곳)에서 항상 애니메이션 포즈를 틱하고 본을 갱신하도록 강제합니다.
+		GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+		GetMesh()->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::AlwaysTickPoseAndRefreshBones;
+	}
+}
+
 void AKHCharacter_Player::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
 	
-	if (AbilitySystemComponent)
+	if (!HasAuthority()) return;
+	if (bASCInitialized) return;
+	if (!AbilitySystemComponent)
 	{
-		if (FireAbility)
-		{
-			FGameplayAbilitySpec FireAbilitySpec(
-				FireAbility, 
-				1.0f, 
-				static_cast<int32>(EAbilityInputID::Fire),
-				this // Owner
-			);
-		
-			AbilitySystemComponent->GiveAbility(FireAbilitySpec);
-		}
-
-		if (ReviveAbility)
-		{
-			FGameplayAbilitySpec ReviveAbilitySpec(
-				ReviveAbility, 
-				1.0f, 
-				static_cast<int32>(EAbilityInputID::Revive),
-				this // Owner
-			);	
-		
-			AbilitySystemComponent->GiveAbility(ReviveAbilitySpec);
-		}
-			
-		AbilitySystemComponent->RegisterGameplayTagEvent(
-		FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
-		EGameplayTagEventType::NewOrRemoved
-	).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
-
-		AbilitySystemComponent->RegisterGameplayTagEvent(
-		FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")),
-		EGameplayTagEventType::NewOrRemoved
-	).AddUObject(this, &AKHCharacter_Player::OnChannelingTagChanged);
+		UE_LOG(LogTemp, Error, TEXT("PossessedBy (SERVER): AbilitySystemComponent is NULL!"));
+		return;
 	}
 	
+	APlayerState* PS = GetPlayerState();
+	if (PS)
+	{
+		bASCInitialized = true;
+		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+
+		OnASCInitialized();
+		
+		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("PossessedBy (SERVER): GetPlayerState() is NULL! ASC Init Failed."));
+	}
+
+
+
+}
+
+void AKHCharacter_Player::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKHCharacter_Player, m_IsDowned);
 }
 
 void AKHCharacter_Player::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
+
+
 	if (AbilitySystemComponent == nullptr)
 	{
 		return;
@@ -133,15 +150,14 @@ void AKHCharacter_Player::Tick(float DeltaSeconds)
 		if (AbilitySystemComponent->HasMatchingGameplayTag(ChannelingTag))
 		{
 			const float CurrentSpeed = GetCharacterMovement()->Velocity.Size();
-            
-			// [핵심] 움직였고, "아직 취소 요청을 보낸 적이 없다면"
+			
 			if (CurrentSpeed > 0.0f && !bIsLocallyTryingToCancel)
 			{
-				// 1. 서버에 RPC를 "딱 한 번" 보냅니다.
-				Server_CancelAbilityWithTag(ChannelingTag);
-                
-				// 2. 플래그를 설정하여 다음 틱부터 RPC를 보내지 않도록 막습니다.
+
 				bIsLocallyTryingToCancel = true;
+				Server_CancelAbilityWithTag(ChannelingTag);
+				
+		
 			}
 		}
 	}
@@ -149,23 +165,81 @@ void AKHCharacter_Player::Tick(float DeltaSeconds)
 
 void AKHCharacter_Player::OnRep_PlayerState()
 {
+	
 	Super::OnRep_PlayerState();
+	if (HasAuthority()) return; 
+	if (bASCInitialized) return; 
 
-	AbilitySystemComponent->RegisterGameplayTagEvent(
-		FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
-		EGameplayTagEventType::NewOrRemoved
-	).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
 
-	AbilitySystemComponent->RegisterGameplayTagEvent(
-			FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")),
-			EGameplayTagEventType::NewOrRemoved
+	APlayerState* PS = GetPlayerState();
+	if (PS)
+	{
+	
+	
+        
+		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+
+
+		OnASCInitialized(); 
+		
+		const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
+		if (AbilitySystemComponent->HasMatchingGameplayTag(DownedTag))
+		{
+			OnDownedTagChanged(DownedTag, 1);
+		}
+
+		bASCInitialized = true;
+	}
+	else
+	{
+	}
+}
+
+void AKHCharacter_Player::OnASCInitialized()
+{
+	
+
+	if (AbilitySystemComponent && !DownedTagEventHandle.IsValid())
+	{
+		DownedTagEventHandle = AbilitySystemComponent->RegisterGameplayTagEvent(
+		   FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
+		   EGameplayTagEventType::NewOrRemoved
+		).AddUObject(this, &AKHCharacter_Player::OnDownedTagChanged);
+	}
+	
+	if (AbilitySystemComponent && !ChannelingTagEventHandle.IsValid() )
+	{
+		ChannelingTagEventHandle = AbilitySystemComponent->RegisterGameplayTagEvent(
+		   FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")),
+		   EGameplayTagEventType::NewOrRemoved
 		).AddUObject(this, &AKHCharacter_Player::OnChannelingTagChanged);
+	}
+	
+	if (HasAuthority())
+	{
+		if (FireAbility)
+		{
+			FGameplayAbilitySpec FireAbilitySpec(FireAbility, 1.0f, static_cast<int32>(EAbilityInputID::Fire), this);
+			AbilitySystemComponent->GiveAbility(FireAbilitySpec);
+		}
+		if (ReviveAbility)
+		{
+			FGameplayAbilitySpec ReviveAbilitySpec(ReviveAbility, 1.0f, static_cast<int32>(EAbilityInputID::Revive), this); 
+			AbilitySystemComponent->GiveAbility(ReviveAbilitySpec);
+		}
+	}
 }
 
 void AKHCharacter_Player::Server_CancelAbilityWithTag_Implementation(FGameplayTag GameplayTag)
 {
 	FGameplayTagContainer TagsToCancelContainer;
 	TagsToCancelContainer.AddTag(GameplayTag);
+
+	UE_LOG(LogTemp,Warning,TEXT("%s"),*GameplayTag.ToString())
 	
 	AbilitySystemComponent->CancelAbilities(&TagsToCancelContainer, nullptr, nullptr);
 }
@@ -173,6 +247,11 @@ void AKHCharacter_Player::Server_CancelAbilityWithTag_Implementation(FGameplayTa
 bool AKHCharacter_Player::Server_CancelAbilityWithTag_Validate(FGameplayTag GameplayTag)
 {
 	return GameplayTag.IsValid();
+}
+
+void AKHCharacter_Player::OnRep_IsDowned()
+{
+	
 }
 
 void AKHCharacter_Player::Input_Ability_Pressed(EAbilityInputID InputID)
@@ -232,6 +311,7 @@ void AKHCharacter_Player::Input_Look(const FInputActionValue& InputActionValue)
 
 void AKHCharacter_Player::OnDownedTagChanged(FGameplayTag GameplayTag, int count)
 {
+
 	if (count > 0)
 	{
 
@@ -245,15 +325,19 @@ void AKHCharacter_Player::OnDownedTagChanged(FGameplayTag GameplayTag, int count
 
 void AKHCharacter_Player::OnChannelingTagChanged(FGameplayTag GameplayTag, int count)
 {
-	if (count == 0 && IsLocallyControlled())
+
+
+	if (count == 0)
 	{
 		bIsLocallyTryingToCancel = false;
 	}
-	
 }
 
 void AKHCharacter_Player::HandleDownedState()
 {
+
+	m_IsDowned = true;
+	
 	if (AController* pController = GetController())
 	{
 		pController->DisableInput(Cast<APlayerController>(pController));
@@ -273,10 +357,7 @@ void AKHCharacter_Player::HandleDownedState()
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 
-	if (UKHAnimInstance_Player* pAnim = Cast<UKHAnimInstance_Player>(GetMesh()->GetAnimInstance()))
-	{
-		pAnim->SetIsDowned(true);
-	}
+
 }
 
 void AKHCharacter_Player::HandleRecoveredState()
@@ -298,10 +379,7 @@ void AKHCharacter_Player::HandleRecoveredState()
 		GetCharacterMovement()->SetComponentTickEnabled(true);
 	}
 
-	if (UKHAnimInstance_Player* pAnim = Cast<UKHAnimInstance_Player>(GetMesh()->GetAnimInstance()))
-	{
-		pAnim->SetIsDowned(false);
-	}
+	m_IsDowned = false;
 }
 
 void AKHCharacter_Player::Multicast_PlayImpactFX_Implementation(const FVector_NetQuantize& HitLocation,
