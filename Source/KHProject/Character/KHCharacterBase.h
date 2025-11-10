@@ -15,7 +15,8 @@ enum class EAbilityInputID : uint8
 	Confirm     UMETA(DisplayName = "Confirm"),
 	Cancel      UMETA(DisplayName = "Cancel"),
 	Fire        UMETA(DisplayName = "Fire"),
-	Revive    UMETA(DisplayName = "Revive")
+	Revive    UMETA(DisplayName = "Revive"),
+	Reload    UMETA(DisplayName = "Reload")
 };
 
 class UAbilitySystemComponent;
@@ -51,7 +52,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UKHAttributeSet_Character> AttributeSet;
+	TObjectPtr<UKHAttributeSet_Character> m_pAttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<UGameplayEffect> BaseStatsEffect;

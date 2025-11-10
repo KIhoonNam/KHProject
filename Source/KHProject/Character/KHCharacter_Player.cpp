@@ -72,15 +72,16 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 	}
 
 	
-	if (IA_Fire)
-	{
+	
+	
 		
 		EnhancedInput->BindAction(IA_Fire, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Fire);
 		EnhancedInput->BindAction(IA_Fire, ETriggerEvent::Completed, this, &AKHCharacter_Player::Input_Ability_Released, EAbilityInputID::Fire);
 		EnhancedInput->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AKHCharacter_Player::Input_Move);
 		EnhancedInput->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AKHCharacter_Player::Input_Look);
 		EnhancedInput->BindAction(IA_Revive, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Revive);
-	}
+		EnhancedInput->BindAction(IA_Reload, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Reload);
+	
 }
 
 void AKHCharacter_Player::BeginPlay()
@@ -231,6 +232,17 @@ void AKHCharacter_Player::OnASCInitialized()
 			FGameplayAbilitySpec ReviveAbilitySpec(ReviveAbility, 1.0f, static_cast<int32>(EAbilityInputID::Revive), this); 
 			AbilitySystemComponent->GiveAbility(ReviveAbilitySpec);
 		}
+		if (ReloadAbility)
+		{
+			FGameplayAbilitySpec ReloadAbilitySpec(ReloadAbility, 1.0f, static_cast<int32>(EAbilityInputID::Reload), this); 
+			AbilitySystemComponent->GiveAbility(ReloadAbilitySpec);
+		}
+		const UKHAttributeSet_Character* pAttributes  = AbilitySystemComponent->GetSet<UKHAttributeSet_Character>();
+		if (pAttributes)
+		{
+			AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetHealthAttribute(), EGameplayModOp::Override, pAttributes->GetMaxHealth());
+			AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetCurrentAmmoAttribute(), EGameplayModOp::Override, pAttributes->GetMaxAmmo());
+		}
 	}
 }
 
@@ -261,7 +273,7 @@ void AKHCharacter_Player::Input_Ability_Pressed(EAbilityInputID InputID)
 	{
 		AbilitySystemComponent->AbilityLocalInputPressed(static_cast<int32>(InputID));
 
-		UE_LOG(LogTemp,Warning,TEXT("Revive "))
+		UE_LOG(LogTemp,Warning,TEXT("Input Ability Pressed: %d"), static_cast<int32>(InputID));
 	}
 }
 

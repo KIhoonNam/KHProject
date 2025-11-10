@@ -8,12 +8,13 @@
 #include "GameplayEffect.h"
 UKHAttributeSet_Character::UKHAttributeSet_Character()
 {
-	InitHealth(100.0f);
+	
+	InitHealth(0.f);
 	InitMaxHealth(100.0f);
 	InitMoveSpeed(600.0f);
 
-	InitCurrentAmmo(30.0f);
-	InitMaxAmmo(30.0f);
+	InitCurrentAmmo(0.f);
+	InitMaxAmmo(30.f);
 
 	static ConstructorHelpers::FClassFinder<UGameplayEffect> DownedGEFinder(
 		TEXT("/Game/GAS/GE_Down.GE_Down_C")

@@ -9,9 +9,9 @@
 
 float AKHCharacter_MonsterBase::GetHealth() const
 {
-	if (AttributeSet)
+	if (m_pAttributeSet)
 	{
-		return AttributeSet->GetHealth();
+		return m_pAttributeSet->GetHealth();
 	}
 	return 0.0f;
 }
@@ -51,9 +51,9 @@ void AKHCharacter_MonsterBase::BeginPlay()
 				}
 				
 				AbilitySystemComponent->ApplyModToAttribute(
-					AttributeSet->GetHealthAttribute(), 
+					m_pAttributeSet->GetHealthAttribute(), 
 					EGameplayModOp::Override, 
-					AttributeSet->GetMaxHealth()
+					m_pAttributeSet->GetMaxHealth()
 				);
 			}
 			if (m_pAIMeleeAbility)

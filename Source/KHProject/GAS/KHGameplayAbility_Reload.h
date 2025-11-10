@@ -4,43 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "KHGameplayAbility_Revive.generated.h"
+#include "KHGameplayAbility_Reload.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class KHPROJECT_API UKHGameplayAbility_Revive : public UGameplayAbility
+class KHPROJECT_API UKHGameplayAbility_Reload : public UGameplayAbility
 {
 	GENERATED_BODY()
-	
 public:
-	UKHGameplayAbility_Revive();
-
+	UKHGameplayAbility_Reload();
+	
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
 
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-protected:
-	UFUNCTION()
-	void OnReviveComplete();
 
-	void HandleOwnerDowned(FGameplayTag GameplayTag, int count);
-
-protected:
 	
-	UPROPERTY(EditAnywhere)
-	float m_fReviveDuration = 5.0f;
-
-	UPROPERTY(EditAnywhere)
-	float m_fReviveMaxDistance = 50.0f;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UGameplayEffect> ReviveEffectClass;
-
-	TObjectPtr<UAbilitySystemComponent> TargetASC_ToRevive;
-
-	FDelegateHandle DownedTagHandle;
+private:
+	UFUNCTION()
+	void OnReloadComplete();
 };

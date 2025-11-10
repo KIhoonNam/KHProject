@@ -39,11 +39,11 @@ public:
 	FGameplayAttributeData MoveSpeed;
 	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, MoveSpeed)
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentAmmo)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxAmmo)
 	FGameplayAttributeData MaxAmmo;
 	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, MaxAmmo)
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxAmmo)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentAmmo)
 	FGameplayAttributeData CurrentAmmo;
 	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, CurrentAmmo)
 

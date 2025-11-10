@@ -20,7 +20,7 @@ AKHCharacterBase::AKHCharacterBase()
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 	
-	AttributeSet = CreateDefaultSubobject<UKHAttributeSet_Character>(TEXT("AttributeSet"));
+	m_pAttributeSet = CreateDefaultSubobject<UKHAttributeSet_Character>(TEXT("CharacterAttributeSet"));
 }
 
 UAbilitySystemComponent* AKHCharacterBase::GetAbilitySystemComponent() const
@@ -60,7 +60,7 @@ void AKHCharacterBase::PossessedBy(AController* NewController)
 		return;
 	}
 	
-
+	if (!HasAuthority()) return;
 	if (AbilitySystemComponent && BaseStatsEffect)
 	{
 		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
@@ -74,14 +74,6 @@ void AKHCharacterBase::PossessedBy(AController* NewController)
 			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 		}
 		
-		if (AttributeSet)
-		{
-			AbilitySystemComponent->ApplyModToAttribute(
-				AttributeSet->GetHealthAttribute(), 
-				EGameplayModOp::Override, 
-				AttributeSet->GetMaxHealth() 
-			);
-		}
 	}
 
 

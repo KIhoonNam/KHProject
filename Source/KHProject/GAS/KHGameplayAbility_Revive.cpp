@@ -17,6 +17,9 @@ UKHGameplayAbility_Revive::UKHGameplayAbility_Revive()
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.IsChanneling.Revive")));
 	
 	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed")));
+
+
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 }
 
 bool UKHGameplayAbility_Revive::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -66,14 +69,12 @@ bool UKHGameplayAbility_Revive::CanActivateAbility(const FGameplayAbilitySpecHan
 				UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SensedPlayer);
 				if (TargetASC && TargetASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed"))))
 				{
-					TargetASC_ToRevive = TargetASC; 
 					return true;
 				}
 			}
 		}
 	}
 	
-	TargetASC_ToRevive.Reset();
 	return false;
 	
 }
@@ -90,7 +91,7 @@ void UKHGameplayAbility_Revive::ActivateAbility(const FGameplayAbilitySpecHandle
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
+	TargetASC_ToRevive = nullptr;
 	UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
 	if (OwnerASC)
 	{
@@ -101,13 +102,58 @@ void UKHGameplayAbility_Revive::ActivateAbility(const FGameplayAbilitySpecHandle
 		).AddUObject(this, &UKHGameplayAbility_Revive::HandleOwnerDowned);
 	}
 
+	AActor* Avatar = ActorInfo->AvatarActor.Get();
+	if (Avatar == nullptr) 
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	FVector TraceStart = Avatar->GetActorLocation();
+	FVector TraceEnd = TraceStart + (Avatar->GetActorForwardVector() * m_fReviveMaxDistance);
+
+	TArray<FHitResult> OutHits;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(Avatar);
+
+	bool bHit = UKismetSystemLibrary::SphereTraceMultiByProfile(
+		Avatar->GetWorld(),
+		TraceStart,
+		TraceEnd,
+		m_fReviveMaxDistance, 
+		TEXT("Pawn"), 
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		OutHits,
+		true,
+		FLinearColor::Red,
+		FLinearColor::Green,
+		5.0f
+	);
+
+	if (bHit)
+	{
+		for (const FHitResult& Hit : OutHits)
+		{
+			AKHCharacter_Player* SensedPlayer = Cast<AKHCharacter_Player>(Hit.GetActor());
+			if (SensedPlayer)
+			{
+				UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SensedPlayer);
+				if (TargetASC && TargetASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("Status.Downed"))))
+				{
+					TargetASC_ToRevive = TargetASC;
+					break;
+				}
+			}
+		}
+	}
+	
 	
 	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, m_fReviveDuration);
 	if (DelayTask)
 	{
 		DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_Revive::OnReviveComplete);
-
-		TargetASC_ToRevive = OwnerASC;
 		DelayTask->ReadyForActivation();
 	}
 	else
