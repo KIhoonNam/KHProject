@@ -98,8 +98,8 @@ public:
 	void Server_CancelAbilityWithTag(FGameplayTag GameplayTag);
 
 public:
-	UPROPERTY(Replicated,  ReplicatedUsing = "OnRep_IsDowned",BlueprintReadOnly)
-	bool m_IsDowned;
+	UPROPERTY(Replicated,  ReplicatedUsing = OnRep_IsDowned,BlueprintReadOnly)
+	bool m_IsCurrentDowned;
 
 	UFUNCTION()
 	void OnRep_IsDowned();

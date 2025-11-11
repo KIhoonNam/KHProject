@@ -3,26 +3,43 @@
 
 #include "Anim/KHAnimInstance_Player.h"
 
+#include "AbilitySystemComponent.h"
 #include "KHCharacter_Player.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "KismetAnimationLibrary.h"
+
+UKHAnimInstance_Player::UKHAnimInstance_Player()
+{
+	bIsDowned = false;
+}
 
 void UKHAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
 
-	if (GetOwningActor())
+	if (TryGetPawnOwner())
 	{
-		if (AKHCharacter_Player* PlayerCharacter = Cast<AKHCharacter_Player>(GetOwningActor()))
+		if (AKHCharacter_Player* PlayerCharacter = Cast<AKHCharacter_Player>(TryGetPawnOwner()))
 		{
 			FVector vecVelocity = PlayerCharacter->GetVelocity();
 			vecVelocity.Z = 0.0f;
 			float Speed = vecVelocity.Size2D();
 			bIsMove = Speed > 3.f;
 			fDirection = UKismetAnimationLibrary::CalculateDirection(vecVelocity, PlayerCharacter->GetActorRotation());
-			bIsDowned = PlayerCharacter->m_IsDowned;
+
+			bool IsDowned = PlayerCharacter->m_IsCurrentDowned;
+			bIsDowned = IsDowned;
+			if (PlayerCharacter->HasAuthority())
+			{
+				GEngine->AddOnScreenDebugMessage(-1,DeltaSeconds,FColor::Green,FString::Printf(TEXT("Server Is Down %s %s %d"),*this->GetName(),*PlayerCharacter->GetName(),static_cast<int>(IsDowned)));
+			}
+			else
+			{
+		
+				GEngine->AddOnScreenDebugMessage(-1,DeltaSeconds,FColor::Green,FString::Printf(TEXT("Clinet Is Down %s %s %d"),*this->GetName(),*PlayerCharacter->GetName(),static_cast<int>(IsDowned)));
+			}
 			
 		}
 	}

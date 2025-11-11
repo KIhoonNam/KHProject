@@ -14,6 +14,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameMode/KHPlayerState.h"
 
 
 AKHCharacter_Player::AKHCharacter_Player()
@@ -87,13 +88,7 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 void AKHCharacter_Player::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetMesh())
-	{
-		// 서버(및 모든 곳)에서 항상 애니메이션 포즈를 틱하고 본을 갱신하도록 강제합니다.
-		GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-		GetMesh()->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::AlwaysTickPoseAndRefreshBones;
-	}
+	
 }
 
 void AKHCharacter_Player::PossessedBy(AController* NewController)
@@ -131,12 +126,13 @@ void AKHCharacter_Player::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AKHCharacter_Player, m_IsDowned);
+	DOREPLIFETIME(AKHCharacter_Player, m_IsCurrentDowned);
 }
 
 void AKHCharacter_Player::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
 
 
 	if (AbilitySystemComponent == nullptr)
@@ -187,11 +183,11 @@ void AKHCharacter_Player::OnRep_PlayerState()
 
 		OnASCInitialized(); 
 		
-		const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
-		if (AbilitySystemComponent->HasMatchingGameplayTag(DownedTag))
-		{
-			OnDownedTagChanged(DownedTag, 1);
-		}
+		// const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
+		// if (AbilitySystemComponent->HasMatchingGameplayTag(DownedTag))
+		// {
+		// 	OnDownedTagChanged(DownedTag, 1);
+		// }
 
 		bASCInitialized = true;
 	}
@@ -347,8 +343,17 @@ void AKHCharacter_Player::OnChannelingTagChanged(FGameplayTag GameplayTag, int c
 
 void AKHCharacter_Player::HandleDownedState()
 {
+	AKHPlayerState* pPS = GetPlayerState<AKHPlayerState>();
+	if (pPS == nullptr) return;
 
-	m_IsDowned = true;
+	
+	if (HasAuthority())
+	{
+		pPS->SetIsDowned(true);
+	
+	}
+
+	m_IsCurrentDowned = true;
 	
 	if (AController* pController = GetController())
 	{
@@ -361,7 +366,6 @@ void AKHCharacter_Player::HandleDownedState()
 	{
 		GetCharacterMovement()->StopMovementImmediately();
 		GetCharacterMovement()->DisableMovement();
-		GetCharacterMovement()->SetComponentTickEnabled(false);
 	}
 
 	if (GetCapsuleComponent())
@@ -374,6 +378,16 @@ void AKHCharacter_Player::HandleDownedState()
 
 void AKHCharacter_Player::HandleRecoveredState()
 {
+
+	AKHPlayerState* pPS = GetPlayerState<AKHPlayerState>();
+	if (pPS == nullptr) return;
+
+	
+	if (HasAuthority())
+	{
+		pPS->SetIsDowned(false);
+	}
+	m_IsCurrentDowned = false;
 	if (AController* pController = GetController())
 	{
 		pController->EnableInput(Cast<APlayerController>(pController));
@@ -388,10 +402,8 @@ void AKHCharacter_Player::HandleRecoveredState()
 	if (GetCharacterMovement())
 	{
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		GetCharacterMovement()->SetComponentTickEnabled(true);
 	}
-
-	m_IsDowned = false;
+	
 }
 
 void AKHCharacter_Player::Multicast_PlayImpactFX_Implementation(const FVector_NetQuantize& HitLocation,

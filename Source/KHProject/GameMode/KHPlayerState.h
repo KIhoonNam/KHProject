@@ -15,11 +15,18 @@ class KHPROJECT_API AKHPlayerState : public APlayerState
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing = OnRep_IsDowned)
 	bool bIsDown;
+	
 
-
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 public:
 	bool IsDown() {return bIsDown;}
 	
+	void SetIsDowned(bool _enable);public:
+	
+	
+	UFUNCTION()
+	void OnRep_IsDowned();
 };
