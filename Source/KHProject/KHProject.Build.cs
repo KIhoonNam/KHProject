@@ -11,7 +11,7 @@ public class KHProject : ModuleRules
 
 		bLegacyPublicIncludePaths = true;
 		bLegacyParentIncludePaths = true;
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayAbilities","GameplayTags","AnimGraphRuntime","GameplayTasks" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayAbilities","GameplayTags","AnimGraphRuntime","GameplayTasks","UMG","Slate","SlateCore" });
 		
 		PublicIncludePaths.AddRange(
 			new string[] {

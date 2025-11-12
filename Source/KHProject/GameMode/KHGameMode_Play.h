@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataTable/KHDataTable_Wave.h"
 #include "GameFramework/GameModeBase.h"
 #include "KHGameMode_Play.generated.h"
 
@@ -13,7 +14,39 @@ UCLASS()
 class KHPROJECT_API AKHGameMode_Play : public AGameModeBase
 {
 	GENERATED_BODY()
+
+	AKHGameMode_Play();
+public:
+
+	FTimerHandle SpawnDelayTimerHandle;
+
+	FTimerHandle RestDelayTimerHandle;
 	
+	UPROPERTY()
+	int32 m_CurrentWave;
+
+	UPROPERTY()
+	int32 m_SpawnedMonsterCount;
+
+	UPROPERTY()
+	int32 m_AlliveMonsterCount;
+	
+	FWaveData* m_WaveData;
+
+	UPROPERTY(EditAnywhere)
+	UDataTable* m_WaveDataTable;
+public:
+	virtual void BeginPlay() override;
+	
+	void StartGame();
+
+	void NextWave();
+
+	void SpawnMonster();
+
+	void OnMonsterKilled();
+	
+	void GameOver();
 	
 public:
 	void CheckForGameOver();

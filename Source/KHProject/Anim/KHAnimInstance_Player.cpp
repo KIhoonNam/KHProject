@@ -31,16 +31,6 @@ void UKHAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 
 			bool IsDowned = PlayerCharacter->m_IsCurrentDowned;
 			bIsDowned = IsDowned;
-			if (PlayerCharacter->HasAuthority())
-			{
-				GEngine->AddOnScreenDebugMessage(-1,DeltaSeconds,FColor::Green,FString::Printf(TEXT("Server Is Down %s %s %d"),*this->GetName(),*PlayerCharacter->GetName(),static_cast<int>(IsDowned)));
-			}
-			else
-			{
-		
-				GEngine->AddOnScreenDebugMessage(-1,DeltaSeconds,FColor::Green,FString::Printf(TEXT("Clinet Is Down %s %s %d"),*this->GetName(),*PlayerCharacter->GetName(),static_cast<int>(IsDowned)));
-			}
-			
 		}
 	}
 }
