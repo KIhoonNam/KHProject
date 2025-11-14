@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "DataTable/KHDataTable_Wave.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "KHGameMode_Play.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class KHPROJECT_API AKHGameMode_Play : public AGameModeBase
+class KHPROJECT_API AKHGameMode_Play : public AGameMode
 {
 	GENERATED_BODY()
 

@@ -10,6 +10,7 @@
 
 AKHGameMode_Lobby::AKHGameMode_Lobby()
 {
+	bUseSeamlessTravel = true;
 }
 
 void AKHGameMode_Lobby::OnPostLogin(AController* NewPlayer)
@@ -57,11 +58,53 @@ void AKHGameMode_Lobby::Logout(AController* Exiting)
 
 void AKHGameMode_Lobby::StartGame()
 {
-	GetWorld()->ServerTravel(MainGameMapPath, false, true);
+	GetWorld()->ServerTravel(MainGameMapPath, true, false);
 }
 
 void AKHGameMode_Lobby::UpdateLobbyStatus()
 {
-	
+
+	CheckStartCondition();
+
+}
+
+void AKHGameMode_Lobby::NotifyPlayerReady(const FString& PlayerName)
+{
+	if (AKHGameState_Lobby* LobbyGameState = GetGameState<AKHGameState_Lobby>())
+	{
+		LobbyGameState->OnPlayerReady(PlayerName);
+	}
+
+	UpdateLobbyStatus();
+}
+
+void AKHGameMode_Lobby::CheckStartCondition()
+{
+
+	if (AKHGameState_Lobby* LobbyGameState = GetGameState<AKHGameState_Lobby>())
+	{
+		bool bAllReady = true;
+		if (LobbyGameState->arrPlayerNames.IsEmpty()) return;
+		for (FLobbyPlayerInfo PlayerInfo : LobbyGameState->arrPlayerNames)
+		{
+			if (!PlayerInfo.bIsReady)
+			{
+				bAllReady = false;
+				break;
+			}
+		}
+
+
+		if (bAllReady)
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				StartLobbyTimer,
+				this,
+				&AKHGameMode_Lobby::StartGame,
+				5.0f,
+				false
+			);
+		}
+	}
 }
 

@@ -35,7 +35,7 @@ AKHCharacter_Player::AKHCharacter_Player()
 	ChannelingTagEventHandle.Reset();
 
 	
-	
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)

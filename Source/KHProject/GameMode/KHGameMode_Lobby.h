@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "KHGameMode_Lobby.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class KHPROJECT_API AKHGameMode_Lobby : public AGameModeBase
+class KHPROJECT_API AKHGameMode_Lobby : public AGameMode
 {
 	GENERATED_BODY()
 public:
@@ -20,7 +20,7 @@ public:
 	FString MainGameMapPath;
 
 	
-	
+	FTimerHandle StartLobbyTimer;
 public:
 	virtual void OnPostLogin(AController* NewPlayer) override;
 	
@@ -32,6 +32,7 @@ public:
 public:
 	void UpdateLobbyStatus();
 
-public:
-
+	void NotifyPlayerReady(const FString& PlayerName);
+private:
+	void CheckStartCondition();
 };

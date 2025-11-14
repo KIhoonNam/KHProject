@@ -12,6 +12,8 @@ AKHGameMode_Play::AKHGameMode_Play()
 	m_CurrentWave = 0;
 	m_SpawnedMonsterCount = 0;
 	m_AlliveMonsterCount = 0;
+
+	bUseSeamlessTravel = true;
 }
 
 void AKHGameMode_Play::BeginPlay()

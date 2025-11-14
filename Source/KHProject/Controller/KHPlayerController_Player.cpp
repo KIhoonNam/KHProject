@@ -4,6 +4,7 @@
 #include "Controller/KHPlayerController_Player.h"
 
 #include "GameFramework/PlayerState.h"
+#include "GameMode/KHGameMode_Lobby.h"
 #include "GameMode/KHGameState_Lobby.h"
 #include "UI/KHHUD_Lobby.h"
 #include "UI/Widget/KHWidget_Lobby.h"
@@ -27,9 +28,11 @@ void AKHPlayerController_Player::BeginPlay()
 
 void AKHPlayerController_Player::Server_PlayerReady_Implementation()
 {
-	if (AKHGameState_Lobby* pState = Cast<AKHGameState_Lobby>(GetWorld()->GetGameState()))
+	if (AKHGameMode_Lobby* pGameMode = Cast<AKHGameMode_Lobby>(GetWorld()->GetAuthGameMode()))
 	{
 		FString PlayerGuid = PlayerState->GetPlayerName();
-		pState->OnPlayerReady(PlayerGuid);
+		pGameMode->NotifyPlayerReady(PlayerGuid);
 	}
+
+
 }

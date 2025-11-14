@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/GameState.h"
 #include "GameFramework/GameStateBase.h"
 #include "KHGameState_Lobby.generated.h"
 USTRUCT(BlueprintType)
@@ -34,7 +35,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FUpdateCurrentPlayersDelegate,int32, const 
  */
 
 UCLASS()
-class KHPROJECT_API AKHGameState_Lobby : public AGameStateBase
+class KHPROJECT_API AKHGameState_Lobby : public AGameState
 {
 	GENERATED_BODY()
 

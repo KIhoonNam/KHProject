@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
+
 #include "KHProjectGameMode.generated.h"
 
 UCLASS(minimalapi)
