@@ -17,6 +17,13 @@ class KHPROJECT_API AKHGameMode_Play : public AGameMode
 
 	AKHGameMode_Play();
 public:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APlayerController> PlayerController;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APlayerState> PlayerState;
+
+public:
 
 	FTimerHandle SpawnDelayTimerHandle;
 
@@ -37,7 +44,8 @@ public:
 	UDataTable* m_WaveDataTable;
 public:
 	virtual void BeginPlay() override;
-	
+
+	virtual void Tick(float DeltaSeconds) override;
 	void StartGame();
 
 	void NextWave();
@@ -50,5 +58,9 @@ public:
 	
 public:
 	void CheckForGameOver();
-	
+
+
+public:
+	UPROPERTY()
+	float m_fPlayerCheckTimer;
 };

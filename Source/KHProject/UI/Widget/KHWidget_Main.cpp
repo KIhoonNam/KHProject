@@ -4,6 +4,7 @@
 #include "UI/Widget/KHWidget_Main.h"
 
 #include "Button.h"
+#include "GameInstance/KHGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -20,5 +21,8 @@ void UKHWidget_Main::NativeConstruct()
 void UKHWidget_Main::OnClickJoin()
 {
 	UE_LOG(LogTemp,Warning,TEXT("OnClickJoin"));
-	UGameplayStatics::OpenLevel(GetWorld(),"127.0.0.1");
+	if (UKHGameInstance* pInstance = Cast<UKHGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())))
+	{
+		pInstance->FindAndJoinSession("IPAddress");
+	}
 }

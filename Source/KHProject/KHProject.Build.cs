@@ -6,11 +6,11 @@ public class KHProject : ModuleRules
 {
 	public KHProject(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
-		bLegacyPublicIncludePaths = true;
+		
+		bLegacyPublicIncludePaths = true; 
 		bLegacyParentIncludePaths = true;
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule","OnlineSubsystem","OnlineSubsystemUtils","OnlineSubsystemNull" });
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayAbilities","GameplayTags","AnimGraphRuntime","GameplayTasks","UMG","Slate","SlateCore" });
 		
 		PublicIncludePaths.AddRange(

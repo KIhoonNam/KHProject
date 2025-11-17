@@ -4,7 +4,9 @@
 #include "GameMode/KHGameMode_Play.h"
 
 #include "KHPlayerState.h"
+#include "GameFramework/GameState.h"
 #include "GameFramework/GameStateBase.h"
+#include "Kismet/GameplayStatics.h"
 
 
 AKHGameMode_Play::AKHGameMode_Play()
@@ -14,11 +16,30 @@ AKHGameMode_Play::AKHGameMode_Play()
 	m_AlliveMonsterCount = 0;
 
 	bUseSeamlessTravel = true;
+
+	PlayerControllerClass = PlayerController;
+
+	PlayerStateClass = PlayerState;	
 }
 
 void AKHGameMode_Play::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AKHGameMode_Play::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+		if (GetGameState<AGameState>()->PlayerArray.Num()<=0)
+		{
+			m_fPlayerCheckTimer += DeltaSeconds;
+			if (m_fPlayerCheckTimer >= 5.0f)
+			{
+				GetWorld()->ServerTravel(TEXT("Level_Lobby"));
+				m_fPlayerCheckTimer = 0.0f;
+			}
+		}
 }
 
 void AKHGameMode_Play::StartGame()

@@ -11,6 +11,17 @@
 AKHGameMode_Lobby::AKHGameMode_Lobby()
 {
 	bUseSeamlessTravel = true;
+
+	PlayerControllerClass = PlayerController;
+
+	PlayerStateClass = PlayerState;	
+}
+
+void AKHGameMode_Lobby::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+	FString& ErrorMessage)
+{
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+
 }
 
 void AKHGameMode_Lobby::OnPostLogin(AController* NewPlayer)
@@ -58,7 +69,7 @@ void AKHGameMode_Lobby::Logout(AController* Exiting)
 
 void AKHGameMode_Lobby::StartGame()
 {
-	GetWorld()->ServerTravel(MainGameMapPath, true, false);
+	GetWorld()->ServerTravel(MainGameMapPath, false, false);
 }
 
 void AKHGameMode_Lobby::UpdateLobbyStatus()
@@ -104,6 +115,10 @@ void AKHGameMode_Lobby::CheckStartCondition()
 				5.0f,
 				false
 			);
+		}
+		else if (StartLobbyTimer.IsValid())	
+		{
+			GetWorld()->GetTimerManager().ClearTimer(StartLobbyTimer);
 		}
 	}
 }

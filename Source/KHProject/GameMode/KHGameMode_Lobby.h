@@ -16,12 +16,20 @@ class KHPROJECT_API AKHGameMode_Lobby : public AGameMode
 public:
 	AKHGameMode_Lobby();
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APlayerController> PlayerController;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APlayerState> PlayerState;
+	
 	UPROPERTY(EditDefaultsOnly)
 	FString MainGameMapPath;
 
 	
 	FTimerHandle StartLobbyTimer;
 public:
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+	
 	virtual void OnPostLogin(AController* NewPlayer) override;
 	
 	virtual void Logout(AController* Exiting) override;
