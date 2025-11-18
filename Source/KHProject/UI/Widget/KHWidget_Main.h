@@ -18,7 +18,7 @@ class KHPROJECT_API UKHWidget_Main : public UUserWidget
 	
 public:
 	UPROPERTY(meta = (BindWidget))
-	UButton* Btn_Join;
+	TObjectPtr<UButton> Btn_Join;
 
 	virtual void NativeConstruct() override;
 

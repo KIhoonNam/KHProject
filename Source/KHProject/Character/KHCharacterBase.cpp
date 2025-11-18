@@ -61,20 +61,7 @@ void AKHCharacterBase::PossessedBy(AController* NewController)
 	}
 	
 	if (!HasAuthority()) return;
-	if (AbilitySystemComponent && BaseStatsEffect)
-	{
-		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-		EffectContext.AddSourceObject(this);
-		
-		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(BaseStatsEffect, 1.0f, EffectContext);
 
-		// 3. (서버) 자신에게 이펙트 스펙을 적용합니다.
-		if (SpecHandle.IsValid())
-		{
-			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-		
-	}
 
 
 

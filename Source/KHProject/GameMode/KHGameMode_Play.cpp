@@ -4,6 +4,7 @@
 #include "GameMode/KHGameMode_Play.h"
 
 #include "KHPlayerState.h"
+#include "Actor/KHActor_Spawner.h"
 #include "GameFramework/GameState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
@@ -25,6 +26,12 @@ AKHGameMode_Play::AKHGameMode_Play()
 void AKHGameMode_Play::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GetWorld()->GetTimerManager().SetTimer(StartDelayTimerHandle,
+		this,
+		&AKHGameMode_Play::StartGame,
+		3.0f,
+		false);
 }
 
 void AKHGameMode_Play::Tick(float DeltaSeconds)
@@ -44,6 +51,19 @@ void AKHGameMode_Play::Tick(float DeltaSeconds)
 
 void AKHGameMode_Play::StartGame()
 {
+	TArray<AActor*> OverlappingActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AKHActor_Spawner::StaticClass(), OverlappingActors);
+
+	m_arrSpawners.Empty();
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (AKHActor_Spawner* Spawner = Cast<AKHActor_Spawner>(Actor))
+		{
+			m_arrSpawners.Emplace(Spawner);
+		}
+	}
+
+	NextWave();
 }
 
 void AKHGameMode_Play::NextWave()
@@ -82,13 +102,14 @@ void AKHGameMode_Play::SpawnMonster()
 	}
 
 	if (m_WaveData == nullptr) return;
-	if (AKHCharacter_MonsterBase* pMonster = GetWorld()->SpawnActor<AKHCharacter_MonsterBase>(m_WaveData->EnemyToSpawn))
+	if (AKHActor_Spawner* pSpawner = RandomSpawner())
 	{
-		
+		pSpawner->SpawnEnemy(m_WaveData->EnemyToSpawn);
+		m_SpawnedMonsterCount--;
+		m_AlliveMonsterCount++;
 	}
 
-	m_SpawnedMonsterCount--;
-	m_AlliveMonsterCount++;
+
 }
 
 void AKHGameMode_Play::OnMonsterKilled()
@@ -103,7 +124,7 @@ void AKHGameMode_Play::OnMonsterKilled()
 	if (m_AlliveMonsterCount <= 0 && m_SpawnedMonsterCount <= 0)
 	{
 		if (m_WaveData)
-		{;
+		{
 
 			GetWorldTimerManager().SetTimer(
 				RestDelayTimerHandle,
@@ -126,7 +147,6 @@ void AKHGameMode_Play::CheckForGameOver()
 	int32 AlivePlayers = 0;
 
 	UE_LOG(LogTemp, Display, TEXT("CheckForGameOver"));
-	// 1. GameState에 있는 모든 PlayerState 배열을 순회합니다.
 	if (GameState == nullptr) return;
 	
 	for (APlayerState* PS : GameState->PlayerArray)
@@ -145,4 +165,15 @@ void AKHGameMode_Play::CheckForGameOver()
 	{
 		//HandleGameOver();
 	}
+}
+
+AKHActor_Spawner* AKHGameMode_Play::RandomSpawner()
+{
+	if (!m_arrSpawners.IsEmpty())
+	{
+		int32 RandomIndex = FMath::RandRange(0, m_arrSpawners.Num() - 1);
+		return m_arrSpawners[RandomIndex];
+	}
+
+	return nullptr;
 }

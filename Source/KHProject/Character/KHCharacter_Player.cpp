@@ -108,7 +108,19 @@ void AKHCharacter_Player::PossessedBy(AController* NewController)
 	{
 		bASCInitialized = true;
 		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-
+		if (AbilitySystemComponent && BaseStatsEffect)
+		{
+			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+		
+			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(BaseStatsEffect, 1.0f, EffectContext);
+			
+			if (SpecHandle.IsValid())
+			{
+				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		
+		}
 		OnASCInitialized();
 		
 		

@@ -26,16 +26,16 @@ public:
 	TSubclassOf<UUserWidget> PlayerSlotClass;
 	
 	UPROPERTY(meta = (BindWidgetOptional))
-	UTextBlock* Text_PlayerNum;
+	TObjectPtr<UTextBlock> Text_PlayerNum;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	UButton* Btn_Ready;
+	TObjectPtr<UButton> Btn_Ready;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	UButton* Btn_LogOut;
+	TObjectPtr<UButton> Btn_LogOut;
 	
 	UPROPERTY(meta=(BindWidgetOptional))
-	UVerticalBox* Vertical_Player;
+	TObjectPtr<UVerticalBox> Vertical_Player;
 
 
 	virtual void NativeConstruct() override;

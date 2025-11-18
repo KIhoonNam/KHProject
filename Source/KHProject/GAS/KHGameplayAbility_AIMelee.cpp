@@ -71,8 +71,10 @@ void UKHGameplayAbility_AIMelee::ActivateAbility(const FGameplayAbilitySpecHandl
 
 void UKHGameplayAbility_AIMelee::OnHitCheckEvent(FGameplayEventData Payload)
 {
-	UE_LOG(LogTemp,Warning,TEXT("OnHitCheckEvent"));	
-	AAIController* AIController = Cast<AAIController>(GetActorInfo().OwnerActor.Get());
+	UE_LOG(LogTemp,Warning,TEXT("OnHitCheckEvent"));
+	AKHCharacter_MonsterBase* AICharacter = Cast<AKHCharacter_MonsterBase>(GetActorInfo().AvatarActor.Get());
+	if (!AICharacter) return;
+	AAIController* AIController = Cast<AAIController>(AICharacter->GetController());
 	UBlackboardComponent* Blackboard = AIController ? AIController->GetBlackboardComponent() : nullptr;
 	AActor* TargetPlayer = Blackboard ? Cast<AActor>(Blackboard->GetValueAsObject(TEXT("TargetPlayer"))) : nullptr;
 

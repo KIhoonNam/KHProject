@@ -14,7 +14,7 @@ UCLASS()
 class KHPROJECT_API AKHCharacter_MonsterBase : public AKHCharacterBase
 {
 	GENERATED_BODY()
-	
+	AKHCharacter_MonsterBase();
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "GAS")

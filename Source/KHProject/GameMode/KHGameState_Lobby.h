@@ -10,6 +10,7 @@ USTRUCT(BlueprintType)
 struct FLobbyPlayerInfo
 {
 	GENERATED_BODY()
+	
 	UPROPERTY()
 	bool bIsReady;
 

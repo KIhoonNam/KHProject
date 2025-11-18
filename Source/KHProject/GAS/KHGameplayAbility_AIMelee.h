@@ -18,7 +18,7 @@ public:
 	UKHGameplayAbility_AIMelee();
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	UAnimMontage* AttackMontage;
+	TObjectPtr<UAnimMontage> AttackMontage;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;

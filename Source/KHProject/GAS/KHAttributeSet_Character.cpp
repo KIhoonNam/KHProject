@@ -15,7 +15,10 @@ UKHAttributeSet_Character::UKHAttributeSet_Character()
 
 	InitCurrentAmmo(0.f);
 	InitMaxAmmo(30.f);
-
+	UObject* Outer = GetOuter();
+	FString OuterName = Outer ? Outer->GetName() : TEXT("NULL");
+    
+	UE_LOG(LogTemp, Error, TEXT("[AttributeSet Created] Addr: %p / Outer: %s"), this, *OuterName);
 	static ConstructorHelpers::FClassFinder<UGameplayEffect> DownedGEFinder(
 		TEXT("/Game/GAS/GE_Down.GE_Down_C")
 	);

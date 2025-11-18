@@ -30,10 +30,10 @@ protected:
 	FGameplayTag CooldownTag;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	USoundBase* FireSound;
+	TObjectPtr<USoundBase> FireSound;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
-	UParticleSystem* ImpactParticle;
+	TObjectPtr<UParticleSystem> ImpactParticle;
 
 
 	

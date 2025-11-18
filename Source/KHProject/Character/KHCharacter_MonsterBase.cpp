@@ -7,6 +7,13 @@
 #include "KHAttributeSet_Character.h"
 
 
+AKHCharacter_MonsterBase::AKHCharacter_MonsterBase()
+{
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	UE_LOG(LogTemp, Warning, TEXT("Character Constructor Called for: %s"), *GetName());
+}
+
 float AKHCharacter_MonsterBase::GetHealth() const
 {
 	if (m_pAttributeSet)
@@ -33,12 +40,19 @@ void AKHCharacter_MonsterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+
+}
+
+void AKHCharacter_MonsterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
 	if (AbilitySystemComponent)
 	{
 		
 		
 		if (HasAuthority() )
 		{
+			AbilitySystemComponent->InitAbilityActorInfo(this, this);
 			if (BaseStatsEffect)
 			{
 				FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
@@ -61,13 +75,14 @@ void AKHCharacter_MonsterBase::BeginPlay()
 				FGameplayAbilitySpec MeleeAttackSpec(m_pAIMeleeAbility, 1.0f, -1, this);
 				AbilitySystemComponent->GiveAbility(MeleeAttackSpec);
 			}
+
+			const UKHAttributeSet_Character* pAttributes  = AbilitySystemComponent->GetSet<UKHAttributeSet_Character>();
+			if (pAttributes)
+			{
+				AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetHealthAttribute(), EGameplayModOp::Override, pAttributes->GetMaxHealth());
+			}
 		}
 	}
-}
 
-void AKHCharacter_MonsterBase::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
 
-	AbilitySystemComponent->InitAbilityActorInfo(GetController(), this);
 }

@@ -25,10 +25,10 @@ public:
 	
 public:
 	UPROPERTY(meta = (BindWidgetOptional))
-	UTextBlock* Text_PlayerName;
+	TObjectPtr<UTextBlock> Text_PlayerName;
 
 	UPROPERTY(meta = (BindWidgetOptional))
-	UTextBlock* Text_PlayerReady;
+	TObjectPtr<UTextBlock> Text_PlayerReady;
 	
 
 public:

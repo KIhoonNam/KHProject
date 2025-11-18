@@ -61,7 +61,7 @@ void UKHGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHa
 		UKismetSystemLibrary::LineTraceSingle(GetWorld(), 
 			ActorInfo->AvatarActor->GetActorLocation(),
 			ActorInfo->AvatarActor->GetActorLocation() + ActorInfo->AvatarActor->GetActorForwardVector() * 1000.0f,
-			UEngineTypes::ConvertToTraceType(ECC_Visibility),
+			UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2),
 			false,
 			TArray<AActor*>(),
 			EDrawDebugTrace::ForDuration,
@@ -74,10 +74,21 @@ void UKHGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHa
 		if (HitResult.bBlockingHit && HitResult.GetActor())
 		{
 			FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
+			
+			if (SpecHandle.IsValid())
+			{
+				FGameplayEffectContextHandle ContextHandle = SpecHandle.Data->GetContext().Duplicate();
+				
+				ContextHandle.AddInstigator(GetCurrentActorInfo()->AvatarActor.Get(), GetCurrentActorInfo()->AvatarActor.Get());
+				ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
 
+				SpecHandle.Data->SetContext(ContextHandle);
+			}
+			
 			
 			FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromHitResult(HitResult);
 
+			
 			ApplyGameplayEffectSpecToTarget(Handle, ActorInfo, ActivationInfo, SpecHandle, TargetDataHandle);
 			
 		}

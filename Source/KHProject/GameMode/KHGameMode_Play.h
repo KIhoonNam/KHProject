@@ -7,6 +7,7 @@
 #include "GameFramework/GameMode.h"
 #include "KHGameMode_Play.generated.h"
 
+class AKHActor_Spawner;
 /**
  * 
  */
@@ -16,6 +17,7 @@ class KHPROJECT_API AKHGameMode_Play : public AGameMode
 	GENERATED_BODY()
 
 	AKHGameMode_Play();
+
 public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<APlayerController> PlayerController;
@@ -23,11 +25,15 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<APlayerState> PlayerState;
 
+	UPROPERTY()
+	TArray<TObjectPtr<AKHActor_Spawner>> m_arrSpawners;
 public:
 
 	FTimerHandle SpawnDelayTimerHandle;
 
 	FTimerHandle RestDelayTimerHandle;
+
+	FTimerHandle StartDelayTimerHandle;
 	
 	UPROPERTY()
 	int32 m_CurrentWave;
@@ -41,7 +47,7 @@ public:
 	FWaveData* m_WaveData;
 
 	UPROPERTY(EditAnywhere)
-	UDataTable* m_WaveDataTable;
+	TObjectPtr<UDataTable> m_WaveDataTable;
 public:
 	virtual void BeginPlay() override;
 
@@ -59,7 +65,7 @@ public:
 public:
 	void CheckForGameOver();
 
-
+	AKHActor_Spawner* RandomSpawner();
 public:
 	UPROPERTY()
 	float m_fPlayerCheckTimer;
