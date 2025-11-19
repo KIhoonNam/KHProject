@@ -20,6 +20,8 @@ class KHPROJECT_API AKHCharacter_Player : public AKHCharacterBase
 	GENERATED_BODY()
 public:
 	AKHCharacter_Player();
+
+
 public:
 
 	// Called to bind functionality to input
@@ -30,7 +32,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnRep_PlayerState() override;
-
+	virtual void HealthEmpty() override;
 	void OnASCInitialized();
 
 	FDelegateHandle DownedTagEventHandle;
@@ -54,7 +56,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> DefaultSpringArmComponent;
 
-
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> DownedEffectClass;
 	
 	bool bASCInitialized = false;
 
@@ -103,4 +106,5 @@ public:
 
 	UFUNCTION()
 	void OnRep_IsDowned();
+	
 };

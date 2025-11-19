@@ -6,6 +6,8 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include "GameplayEffect.h"
+#include "KHCharacterBase.h"
+
 UKHAttributeSet_Character::UKHAttributeSet_Character()
 {
 	
@@ -18,14 +20,7 @@ UKHAttributeSet_Character::UKHAttributeSet_Character()
 	UObject* Outer = GetOuter();
 	FString OuterName = Outer ? Outer->GetName() : TEXT("NULL");
     
-	UE_LOG(LogTemp, Error, TEXT("[AttributeSet Created] Addr: %p / Outer: %s"), this, *OuterName);
-	static ConstructorHelpers::FClassFinder<UGameplayEffect> DownedGEFinder(
-		TEXT("/Game/GAS/GE_Down.GE_Down_C")
-	);
-	if (DownedGEFinder.Succeeded())
-	{
-		DownedEffectClass = DownedGEFinder.Class;
-	}
+
 }
 
 void UKHAttributeSet_Character::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -66,28 +61,9 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 
 		if (GetHealth() <= 0.0f)
 		{
-	
-			const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
-			
-			if (!TargetASC->HasMatchingGameplayTag(DownedTag))
+			if (AKHCharacterBase* pCharacter = Cast<AKHCharacterBase>(Data.Target.AbilityActorInfo->AvatarActor.Get()))
 			{
-				if (DownedEffectClass)
-				{
-					FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
-					Context.AddInstigator(TargetASC->GetAvatarActor(), TargetASC->GetAvatarActor());
-					Context.AddSourceObject(TargetASC->GetAvatarActor());
-					
-					FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(
-						DownedEffectClass,
-						1.0f, 
-						Context
-					);
-					
-					if (SpecHandle.IsValid())
-					{
-						TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-					}
-				}
+				pCharacter->HealthEmpty();
 			}
 			
 		}

@@ -84,6 +84,11 @@ void AKHCharacterBase::OnRep_PlayerState()
 	// }
 }
 
+void AKHCharacterBase::HealthEmpty()
+{
+	
+}
+
 
 
 

@@ -56,11 +56,9 @@ void AKHAIController_Monster::OnPossess(APawn* InPawn)
 	AKHCharacter_MonsterBase* AICharacter = Cast<AKHCharacter_MonsterBase>(InPawn);
 	if (AICharacter && BehaviorTreeAsset)
 	{
-		// 2-1. [핵심] 블랙보드를 초기화하고 비헤이비어 트리를 실행합니다.
 		BlackboardComponent->InitializeBlackboard(*BehaviorTreeAsset->BlackboardAsset);
 		BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
-
-		// 2-2. [핵심] AI 감지 컴포넌트의 이벤트 핸들러를 이 C++ 함수(OnTargetPerceived)에 바인딩합니다.
+		
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AKHAIController_Monster::OnTargetPerceived);
 	}
 }
@@ -113,7 +111,11 @@ void AKHAIController_Monster::ClearTargetPlayer()
 {
 	if (BlackboardComponent)
 	{
-		
+		if (AActor* pTarget = Cast<AActor>(BlackboardComponent->GetValueAsObject(TEXT("TargetPlayer"))))
+		{
+			BlackboardComponent->SetValueAsVector(TEXT("LastPos"), pTarget->GetActorLocation());
+		}
+	
 		BlackboardComponent->ClearValue(TEXT("TargetPlayer"));
 	}
 }

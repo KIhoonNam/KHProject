@@ -208,6 +208,37 @@ void AKHCharacter_Player::OnRep_PlayerState()
 	}
 }
 
+void AKHCharacter_Player::HealthEmpty()
+{
+	Super::HealthEmpty();
+
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+	const FGameplayTag DownedTag = FGameplayTag::RequestGameplayTag(FName("Status.Downed"));
+	if (!AbilitySystemComponent->HasMatchingGameplayTag(DownedTag))
+	{
+		if (DownedEffectClass)
+		{
+			FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
+			Context.AddInstigator(this, this);
+			Context.AddSourceObject(this);
+					
+			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+				DownedEffectClass,
+				1.0f, 
+				Context
+			);
+					
+			if (SpecHandle.IsValid())
+			{
+				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+	}
+}
+
 void AKHCharacter_Player::OnASCInitialized()
 {
 	

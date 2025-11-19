@@ -59,7 +59,7 @@ protected:
 
 
 	
-protected:
-
+public:
+		virtual void HealthEmpty();
 
 };

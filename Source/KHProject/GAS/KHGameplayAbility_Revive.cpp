@@ -95,7 +95,6 @@ void UKHGameplayAbility_Revive::ActivateAbility(const FGameplayAbilitySpecHandle
 	UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
 	if (OwnerASC)
 	{
-		// 2. C++ 자신의 C++ 'Status.Downed' C++ 태그 C++ 이벤트를 C++ 'HandleOwnerDowned' C++ 함수에 C++ 바인딩합니다.
 		DownedTagHandle = OwnerASC->RegisterGameplayTagEvent(
 			FGameplayTag::RequestGameplayTag(FName("Status.Downed")),
 			EGameplayTagEventType::NewOrRemoved

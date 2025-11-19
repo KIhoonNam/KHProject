@@ -48,8 +48,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, CurrentAmmo)
 
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UGameplayEffect> DownedEffectClass;
+
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 

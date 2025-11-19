@@ -4,7 +4,10 @@
 #include "Character/KHCharacter_MonsterBase.h"
 
 #include "AbilitySystemComponent.h"
+#include "AIController.h"
+#include "BrainComponent.h"
 #include "KHAttributeSet_Character.h"
+#include "Components/CapsuleComponent.h"
 
 
 AKHCharacter_MonsterBase::AKHCharacter_MonsterBase()
@@ -33,6 +36,18 @@ void AKHCharacter_MonsterBase::Multicast_PlayMeleeAttackMontage_Implementation(U
 		{
 			AnimInstance->Montage_Play(MontageToPlay);
 		}
+	}
+}
+
+void AKHCharacter_MonsterBase::Multicast_MonsterDie_Implementation(UAnimMontage* MontageToPlay)
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+		GetMesh()->SetSimulatePhysics(true);
+		
 	}
 }
 
@@ -85,4 +100,39 @@ void AKHCharacter_MonsterBase::PossessedBy(AController* NewController)
 	}
 
 
+}
+
+void AKHCharacter_MonsterBase::Die()
+{
+	if (!HasAuthority()) return;
+		
+}
+
+void AKHCharacter_MonsterBase::HealthEmpty()
+{
+	Super::HealthEmpty();
+
+	if (!AbilitySystemComponent) return;
+
+	FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(FName("Status.Die"));
+	AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+
+	FGameplayTagContainer CancelTags;
+	CancelTags.AddTag(FGameplayTag::RequestGameplayTag(FName("AI.Attack.Melee")));
+	AbilitySystemComponent->CancelAbilities(&CancelTags);
+	
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController && AIController->GetBrainComponent())
+	{
+		AIController->GetBrainComponent()->StopLogic("Dead");
+	}
+
+	
+	Multicast_MonsterDie(DieMontage);
+
+	FTimerHandle DeadTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle,[this]()
+	{
+		Destroy();
+	},5.0f,false);
 }

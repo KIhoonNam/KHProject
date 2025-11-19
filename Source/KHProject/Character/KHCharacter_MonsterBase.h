@@ -24,12 +24,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TSubclassOf<UKHGameplayAbility_AIMelee> m_pAIMeleeAbility;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Config")
+	TObjectPtr<UAnimMontage> DieMontage;
+	
 public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayMeleeAttackMontage(UAnimMontage* MontageToPlay);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_MonsterDie(UAnimMontage* MontageToPlay);
 public:
 	virtual void BeginPlay() override;
 
 
 	virtual void PossessedBy(AController* NewController) override;
+
+public:
+	void Die();
+
+	virtual void HealthEmpty() override;
 };
