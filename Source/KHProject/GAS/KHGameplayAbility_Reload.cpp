@@ -5,6 +5,7 @@
 
 #include "AbilityTask_WaitDelay.h"
 #include "KHAttributeSet_Character.h"
+#include "KHCharacter_Player.h"
 
 
 UKHGameplayAbility_Reload::UKHGameplayAbility_Reload()
@@ -50,18 +51,33 @@ void UKHGameplayAbility_Reload::ActivateAbility(const FGameplayAbilitySpecHandle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, 3.0f);
-	if (DelayTask)
+	if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(ActorInfo->AvatarActor.Get()))
 	{
-		UE_LOG(LogTemp,Warning,TEXT("Reload Activate"))
+
 		
-		DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_Reload::OnReloadComplete);
-		DelayTask->ReadyForActivation();
+		FString strWeaponType = EnumToString(pPlayer->m_eWeaponType);
+		FName ReloadMontageName = FName(*FString::Printf(TEXT("Reload_%s"), *strWeaponType));
+		if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(ReloadMontageName))
+		{
+			pPlayer->Multicast_PlayAnimMontage(ReloadMontage);
+			
+			const float MontageDuration = ReloadMontage->GetPlayLength();
+			
+			UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, MontageDuration);
+			if (DelayTask)
+			{
+				UE_LOG(LogTemp,Warning,TEXT("Reload Activate"))
+		
+				DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_Reload::OnReloadComplete);
+				DelayTask->ReadyForActivation();
+			}
+			else
+			{
+				EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			}
+		}
 	}
-	else
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-	}
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 }
 
 void UKHGameplayAbility_Reload::EndAbility(const FGameplayAbilitySpecHandle Handle,

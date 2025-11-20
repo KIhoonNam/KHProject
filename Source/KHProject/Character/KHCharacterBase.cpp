@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "../GAS/KHAttributeSet_Character.h" 
+#include "DataTable/KHDataTable_PlayerAnim.h"
 #include "GameFramework/PlayerState.h"
 
 // Sets default values
@@ -26,6 +27,21 @@ AKHCharacterBase::AKHCharacterBase()
 UAbilitySystemComponent* AKHCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+UAnimMontage* AKHCharacterBase::GetAnimMontage(const FName& RowName)
+{
+	if (m_AnimDataTable)
+	{
+		FAnimData* AnimData = m_AnimDataTable->FindRow<FAnimData>(RowName,TEXT("KHCharacterBase::GetAnimMontage"));
+
+		if (AnimData)
+		{
+			return AnimData->AnimMontage;
+		}
+	}
+
+	return nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -82,6 +98,17 @@ void AKHCharacterBase::OnRep_PlayerState()
 	// {
 	// 	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 	// }
+}
+
+void AKHCharacterBase::Multicast_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	if (GetMesh()&& MontageToPlay)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(MontageToPlay);
+		}
+	}
 }
 
 void AKHCharacterBase::HealthEmpty()

@@ -13,6 +13,8 @@
 #include "Anim/KHAnimInstance_Player.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "DataTable/KHDataTable_PlayerAnim.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -35,6 +37,11 @@ AKHCharacter_Player::AKHCharacter_Player()
 
 	PlayerWidgetComponent = CreateDefaultSubobject<UKHWidgetComponent>(TEXT("PlayerWidgetComponent"));
 	PlayerWidgetComponent->SetupAttachment(GetRootComponent());
+
+	WeaponComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponComponent"));
+	WeaponComponent->SetupAttachment(GetRootComponent());
+
+	
 	bASCInitialized = false;
 
 	DownedTagEventHandle.Reset();
@@ -95,8 +102,8 @@ void AKHCharacter_Player::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-	
+	m_eWeaponType = EWeaponType::Rifle;
+	WeaponAttachToSocket(m_eWeaponType);
 }
 
 void AKHCharacter_Player::PossessedBy(AController* NewController)
@@ -319,6 +326,67 @@ void AKHCharacter_Player::OnASCInitialized()
 		}
 	}
 
+}
+
+void AKHCharacter_Player::WeaponAttachToSocket(EWeaponType _weaponType)
+{
+	if (WeaponComponent)
+	{
+		FString strSocketName = EnumToString(_weaponType);
+		strSocketName += "Socket";
+		UE_LOG(LogTemp,Warning,TEXT("Current Weapon Socket: %s"),*strSocketName)
+		FName WeaponSocket = FName(*strSocketName);
+		WeaponComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
+
+		
+	}
+}
+
+void AKHCharacter_Player::HandleReloadWeapon(bool _state)
+{
+	if (WeaponComponent)
+	{
+		if (_state)
+		{
+			WeaponComponent->HideBoneByName(FName("b_gun_mag"), EPhysBodyOp::PBO_None);
+
+			FString strWeaponName = EnumToString(m_eWeaponType);
+
+			
+			if (m_AnimDataTable)
+			{
+				FString strRowName = TEXT("Reload_") +strWeaponName;
+				FAnimData* AnimData = m_AnimDataTable->FindRow<FAnimData>(*strRowName,TEXT("KHCharacterPlayer::HandleReloadWeapon"));
+
+				if (AnimData )
+				{
+					if (AStaticMeshActor* pMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass()))
+					{
+						m_pMagActor = pMeshActor;
+						if (pMeshActor->GetStaticMeshComponent())
+						{
+							pMeshActor->SetActorEnableCollision(false);
+							pMeshActor->SetMobility(EComponentMobility::Movable);
+							FString MagSocketName = EnumToString(m_eWeaponType) + TEXT("MagSocket");
+							pMeshActor->GetStaticMeshComponent()->SetStaticMesh(AnimData->StaticMesh);
+							pMeshActor->SetActorScale3D(FVector(1.0f,1.0f,1.0f));
+							FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+							pMeshActor->AttachToComponent(GetMesh(), AttachRules, *MagSocketName);
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			WeaponComponent->UnHideBoneByName(FName("b_gun_mag"));
+
+			if (m_pMagActor.IsValid())
+			{
+				m_pMagActor->Destroy();
+			}
+		}
+	}
 }
 
 void AKHCharacter_Player::Server_CancelAbilityWithTag_Implementation(FGameplayTag GameplayTag)

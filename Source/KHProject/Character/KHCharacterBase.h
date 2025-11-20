@@ -8,6 +8,8 @@
 #include "GameplayEffect.h"
 #include "KHCharacterBase.generated.h"
 
+
+
 UENUM(BlueprintType)
 enum class EAbilityInputID : uint8
 {
@@ -21,7 +23,7 @@ enum class EAbilityInputID : uint8
 
 class UAbilitySystemComponent;
 class UKHAttributeSet_Character;
-
+class UDataTable;
 UCLASS()
 class KHPROJECT_API AKHCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
@@ -33,7 +35,10 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UPROPERTY(EditAnywhere,Category="DataTable")
+	TObjectPtr<UDataTable> m_AnimDataTable;
 
+	UAnimMontage* GetAnimMontage(const FName& RowName);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -47,6 +52,9 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
+public:
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayAnimMontage(UAnimMontage* MontageToPlay);
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

@@ -61,7 +61,6 @@ void UKHGameplayAbility_AIMelee::ActivateAbility(const FGameplayAbilitySpecHandl
 	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, MontageDuration);
 	if (DelayTask)
 	{
-		// 딜레이가 끝나면 OnMontageEnded (기존에 C++로 만든 함수)를 호출합니다.
 		DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_AIMelee::OnMontageEnded);
 		DelayTask->ReadyForActivation();
 	}

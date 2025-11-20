@@ -7,6 +7,20 @@
 #include "KHCharacterBase.h"
 #include "KHCharacter_Player.generated.h"
 
+template< typename T >
+static FString EnumToString( T EnumValue )
+{
+	static_assert( TIsUEnumClass< T >::Value, "'T' template parameter to EnumToString must be a valid UEnum" );
+	return StaticEnum< T >()->GetNameStringByValue( ( int64 ) EnumValue );
+}
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	None        UMETA(DisplayName = "None"),
+	Rifle     UMETA(DisplayName = "Rifle"),
+	Gun      UMETA(DisplayName = "Gun"),
+	Shotgun        UMETA(DisplayName = "Shotgun"),
+};
 /**
  * 
  */
@@ -14,6 +28,7 @@ class UInputMappingContext;
 class UKHWidgetComponent;
 class UCameraComponent;
 class USpringArmComponent;
+class USkeletalMeshComponent;
 class UGameplayAbility;
 UCLASS()
 class KHPROJECT_API AKHCharacter_Player : public AKHCharacterBase
@@ -33,8 +48,11 @@ public:
 
 	virtual void OnRep_PlayerState() override;
 	virtual void HealthEmpty() override;
+	
 	void OnASCInitialized();
-
+	void WeaponAttachToSocket(EWeaponType _weaponType);
+	void HandleReloadWeapon(bool _state);
+	
 	FDelegateHandle DownedTagEventHandle;
 	FDelegateHandle ChannelingTagEventHandle;
 protected:
@@ -58,9 +76,14 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UKHWidgetComponent> PlayerWidgetComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<USkeletalMeshComponent> WeaponComponent;
 	
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> DownedEffectClass;
+
+	TWeakObjectPtr<AActor> m_pMagActor;
 	
 	bool bASCInitialized = false;
 
@@ -111,5 +134,8 @@ public:
 
 	UFUNCTION()
 	void OnRep_IsDowned();
+
+	UPROPERTY()
+	EWeaponType m_eWeaponType;
 	
 };
