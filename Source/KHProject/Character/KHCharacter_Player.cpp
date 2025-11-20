@@ -8,6 +8,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "KHAttributeSet_Character.h"
 #include "UnrealNetwork.h"
+#include "WidgetComponent.h"
+#include "Actor/Component/KHWidgetComponent.h"
 #include "Anim/KHAnimInstance_Player.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -15,6 +17,8 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameMode/KHPlayerState.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "UI/Widget/KHWidget_PlayerWidget.h"
 
 
 AKHCharacter_Player::AKHCharacter_Player()
@@ -29,6 +33,8 @@ AKHCharacter_Player::AKHCharacter_Player()
 
 	DefaultCameraComponent->SetupAttachment(DefaultSpringArmComponent);
 
+	PlayerWidgetComponent = CreateDefaultSubobject<UKHWidgetComponent>(TEXT("PlayerWidgetComponent"));
+	PlayerWidgetComponent->SetupAttachment(GetRootComponent());
 	bASCInitialized = false;
 
 	DownedTagEventHandle.Reset();
@@ -88,6 +94,8 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 void AKHCharacter_Player::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	
 }
 
@@ -168,6 +176,20 @@ void AKHCharacter_Player::Tick(float DeltaSeconds)
 				
 		
 			}
+		}
+	}
+	if (GetWorld() && GetWorld()->GetFirstPlayerController())
+	{
+		APlayerCameraManager* CamManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+        
+		if (CamManager && PlayerWidgetComponent)
+		{
+			FVector CameraLoc = CamManager->GetCameraLocation();
+			FVector WidgetLoc = PlayerWidgetComponent->GetComponentLocation();
+			FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(WidgetLoc,CameraLoc);
+			LookAt.Pitch = 0;
+			LookAt.Roll = 0;
+			PlayerWidgetComponent->SetWorldRotation(LookAt);
 		}
 	}
 }
@@ -282,7 +304,21 @@ void AKHCharacter_Player::OnASCInitialized()
 			AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetHealthAttribute(), EGameplayModOp::Override, pAttributes->GetMaxHealth());
 			AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetCurrentAmmoAttribute(), EGameplayModOp::Override, pAttributes->GetMaxAmmo());
 		}
+
+	
 	}
+	if (PlayerWidgetComponent)
+	{
+		if (PlayerWidgetComponent->GetUserWidgetObject())
+		{
+			InitPlayerWidget();
+		}
+		else
+		{
+			PlayerWidgetComponent->OnWidgetCreate.BindUObject(this, &AKHCharacter_Player::InitPlayerWidget);
+		}
+	}
+
 }
 
 void AKHCharacter_Player::Server_CancelAbilityWithTag_Implementation(FGameplayTag GameplayTag)
@@ -303,6 +339,20 @@ bool AKHCharacter_Player::Server_CancelAbilityWithTag_Validate(FGameplayTag Game
 void AKHCharacter_Player::OnRep_IsDowned()
 {
 	
+}
+
+void AKHCharacter_Player::InitPlayerWidget()
+{
+		if (PlayerWidgetComponent && AbilitySystemComponent)
+		{
+			if (UKHWidget_PlayerWidget* pWidget = Cast<UKHWidget_PlayerWidget>(PlayerWidgetComponent->GetUserWidgetObject()))
+			{
+				pWidget->SetupWidget(AbilitySystemComponent);
+			}
+
+			PlayerWidgetComponent->OnWidgetCreate.Unbind();
+		}
+
 }
 
 void AKHCharacter_Player::Input_Ability_Pressed(EAbilityInputID InputID)

@@ -11,6 +11,7 @@
  * 
  */
 class UInputMappingContext;
+class UKHWidgetComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class UGameplayAbility;
@@ -23,8 +24,7 @@ public:
 
 
 public:
-
-	// Called to bind functionality to input
+	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -56,12 +56,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> DefaultSpringArmComponent;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UKHWidgetComponent> PlayerWidgetComponent;
+	
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> DownedEffectClass;
 	
 	bool bASCInitialized = false;
 
 protected:
+	void InitPlayerWidget();
+	
 	void Input_Ability_Pressed(EAbilityInputID InputID);
 	void Input_Ability_Released(EAbilityInputID InputID);
 
