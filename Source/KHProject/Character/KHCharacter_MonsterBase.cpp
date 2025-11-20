@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "GameplayEffectExtension.h"
 #include "KHAttributeSet_Character.h"
 #include "Components/CapsuleComponent.h"
 
@@ -135,4 +136,29 @@ void AKHCharacter_MonsterBase::HealthEmpty()
 	{
 		Destroy();
 	},5.0f,false);
+}
+
+void AKHCharacter_MonsterBase::OnHit(const FGameplayEffectModCallbackData& Data)
+{
+	Super::OnHit(Data);
+
+	float DamageDone = -Data.EvaluatedData.Magnitude; 
+
+	if (DamageDone > 0.0f)
+	{
+		AActor* SourceActor = Data.EffectSpec.GetContext().GetInstigator();
+		AActor* TargetActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+
+
+            
+		FGameplayCueParameters CueParams;
+		CueParams.Location = TargetActor->GetActorLocation();
+		CueParams.RawMagnitude = DamageDone;
+		CueParams.EffectContext = Data.EffectSpec.GetContext();
+		
+		Data.Target.AbilityActorInfo->AbilitySystemComponent->ExecuteGameplayCue(
+			FGameplayTag::RequestGameplayTag(FName("GameplayCue.Combat.Damage")), 
+			CueParams
+		);
+	}
 }

@@ -89,6 +89,11 @@ void AKHCharacterBase::HealthEmpty()
 	
 }
 
+void AKHCharacterBase::OnHit(const FGameplayEffectModCallbackData& Data)
+{
+	
+}
+
 
 
 

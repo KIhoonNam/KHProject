@@ -43,4 +43,6 @@ public:
 	void Die();
 
 	virtual void HealthEmpty() override;
+
+	virtual void OnHit(const FGameplayEffectModCallbackData& Data) override;
 };

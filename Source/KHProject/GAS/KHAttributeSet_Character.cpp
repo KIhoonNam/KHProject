@@ -56,16 +56,21 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-	
-		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
-
-		if (GetHealth() <= 0.0f)
+		if (AKHCharacterBase* pCharacter = Cast<AKHCharacterBase>(Data.Target.AbilityActorInfo->AvatarActor.Get()))
 		{
-			if (AKHCharacterBase* pCharacter = Cast<AKHCharacterBase>(Data.Target.AbilityActorInfo->AvatarActor.Get()))
+			if (Data.EvaluatedData.Magnitude <= 0.0f)
 			{
-				pCharacter->HealthEmpty();
+				pCharacter->OnHit(Data);
 			}
+		
+			SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+
+			if (GetHealth() <= 0.0f)
+			{
 			
+		
+			
+			}
 		}
 	}
 }

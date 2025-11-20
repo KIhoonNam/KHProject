@@ -62,4 +62,6 @@ protected:
 public:
 		virtual void HealthEmpty();
 
+	virtual void OnHit(const FGameplayEffectModCallbackData& Data);
+
 };
