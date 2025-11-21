@@ -25,6 +25,10 @@ public:
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	bool bIsDowned = false;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	FRotator AimRotation;
+
 public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 

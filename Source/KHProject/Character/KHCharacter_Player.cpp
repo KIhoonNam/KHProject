@@ -14,6 +14,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "DataTable/KHDataTable_PlayerAnim.h"
+#include "DataTable/KHDataTable_WeaponData.h"
 #include "Engine/StaticMeshActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
@@ -387,6 +388,41 @@ void AKHCharacter_Player::HandleReloadWeapon(bool _state)
 			}
 		}
 	}
+}
+
+FVector AKHCharacter_Player::GetAimStartLocation() const
+{
+	FVector StartPoint = FVector(0.0f);
+	if (WeaponComponent)
+	{
+		StartPoint = WeaponComponent->GetSocketLocation(FName("MuzzleSocket"));
+	}
+
+	return StartPoint;
+}
+
+FVector AKHCharacter_Player::GetAimEndRotation() const
+{
+	FVector EndVector = FVector(0.0f);
+
+	if (DefaultCameraComponent)
+	{
+		EndVector = DefaultCameraComponent->GetComponentRotation().Vector();
+	}
+
+	return EndVector;
+}
+
+FWeaponData* AKHCharacter_Player::GetWeaponData()
+{
+	FWeaponData* OutWeaponData = nullptr;
+
+	if (m_WeaponDataTable)
+	{
+		OutWeaponData = m_WeaponDataTable->FindRow<FWeaponData>(FName(*EnumToString(m_eWeaponType)), TEXT("KHCharacter_Player::GetWeaponData"));
+	}
+	
+	return OutWeaponData;
 }
 
 void AKHCharacter_Player::Server_CancelAbilityWithTag_Implementation(FGameplayTag GameplayTag)

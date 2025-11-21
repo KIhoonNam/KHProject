@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "KHDataTable_PlayerAnim.h"
+#include "KHDataTable_WeaponData.h"
 
 
 

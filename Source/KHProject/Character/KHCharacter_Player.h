@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "KHCharacterBase.h"
+#include "../DataTable/KHDataTable_WeaponData.h"
 #include "KHCharacter_Player.generated.h"
 
 template< typename T >
@@ -13,14 +14,7 @@ static FString EnumToString( T EnumValue )
 	static_assert( TIsUEnumClass< T >::Value, "'T' template parameter to EnumToString must be a valid UEnum" );
 	return StaticEnum< T >()->GetNameStringByValue( ( int64 ) EnumValue );
 }
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	None        UMETA(DisplayName = "None"),
-	Rifle     UMETA(DisplayName = "Rifle"),
-	Gun      UMETA(DisplayName = "Gun"),
-	Shotgun        UMETA(DisplayName = "Shotgun"),
-};
+
 /**
  * 
  */
@@ -52,6 +46,10 @@ public:
 	void OnASCInitialized();
 	void WeaponAttachToSocket(EWeaponType _weaponType);
 	void HandleReloadWeapon(bool _state);
+	FVector GetAimStartLocation() const;
+	FVector GetAimEndRotation() const;
+
+	FWeaponData* GetWeaponData();
 	
 	FDelegateHandle DownedTagEventHandle;
 	FDelegateHandle ChannelingTagEventHandle;
@@ -83,6 +81,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> DownedEffectClass;
 
+	UPROPERTY(EditAnywhere,Category="DataTable")
+	TObjectPtr<UDataTable> m_WeaponDataTable;
+	
 	TWeakObjectPtr<AActor> m_pMagActor;
 	
 	bool bASCInitialized = false;

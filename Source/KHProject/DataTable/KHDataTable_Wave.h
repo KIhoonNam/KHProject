@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KHCharacter_MonsterBase.h"
-#include "UObject/NoExportTypes.h"
+
 #include "Engine/DataTable.h"
 #include "KHDataTable_Wave.generated.h"
 
 
-
+class AKHCharacter_MonsterBase;
 
 USTRUCT(BlueprintType)
 struct FWaveData : public FTableRowBase

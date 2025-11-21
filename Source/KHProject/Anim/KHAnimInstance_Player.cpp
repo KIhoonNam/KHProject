@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "KismetAnimationLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UKHAnimInstance_Player::UKHAnimInstance_Player()
 {
@@ -31,6 +32,14 @@ void UKHAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 
 			bool IsDowned = PlayerCharacter->m_IsCurrentDowned;
 			bIsDowned = IsDowned;
+
+			FRotator ControlRotation = PlayerCharacter->GetBaseAimRotation();
+			
+			FRotator ActorRotation = PlayerCharacter->GetActorRotation();
+			
+			FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(ControlRotation, ActorRotation);
+
+			AimRotation = DeltaRot;
 		}
 	}
 }

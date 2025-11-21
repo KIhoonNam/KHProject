@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayTagContainer.h"
+#include "DataTable/KHDataTable_WeaponData.h"
 #include "KHGameplayAbility_FireWeapon.generated.h"
 
 /**
@@ -19,8 +20,11 @@ public:
 	UKHGameplayAbility_FireWeapon();
 	
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-	
+
+
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
@@ -36,5 +40,14 @@ protected:
 	TObjectPtr<UParticleSystem> ImpactParticle;
 
 
-	
+
+protected:
+	FWeaponData* m_pWeaponData;
+
+
+protected:
+	UFUNCTION()
+	void OnFireCool();
+
+	void Fire();
 };

@@ -76,8 +76,9 @@ void UKHGameplayAbility_Reload::ActivateAbility(const FGameplayAbilitySpecHandle
 				EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 			}
 		}
+
 	}
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+
 }
 
 void UKHGameplayAbility_Reload::EndAbility(const FGameplayAbilitySpecHandle Handle,
