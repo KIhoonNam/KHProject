@@ -4,6 +4,7 @@
 #include "GAS/KHGameplayAbility_Reload.h"
 
 #include "AbilityTask_WaitDelay.h"
+#include "AbilityTask_WaitGameplayEvent.h"
 #include "KHAttributeSet_Character.h"
 #include "KHCharacter_Player.h"
 
@@ -11,7 +12,7 @@
 UKHGameplayAbility_Reload::UKHGameplayAbility_Reload()
 {
 
-
+	ReloadCheckEventTag = FGameplayTag::RequestGameplayTag(FName("Event.Reload.Bullet"));
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 }
 
@@ -51,34 +52,23 @@ void UKHGameplayAbility_Reload::ActivateAbility(const FGameplayAbilitySpecHandle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(ActorInfo->AvatarActor.Get()))
-	{
 
-		
-		FString strWeaponType = EnumToString(pPlayer->m_eWeaponType);
-		FName ReloadMontageName = FName(*FString::Printf(TEXT("Reload_%s"), *strWeaponType));
-		if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(ReloadMontageName))
+	if (AKHCharacter_Player* pPlayer= Cast<AKHCharacter_Player>(ActorInfo->AvatarActor))
+	{
+		FWeaponData* pWeaponData = pPlayer->GetWeaponData();
+
+		if (pWeaponData)
 		{
-			pPlayer->Multicast_PlayAnimMontage(ReloadMontage);
-			
-			const float MontageDuration = ReloadMontage->GetPlayLength();
-			
-			UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, MontageDuration);
-			if (DelayTask)
+			if (pWeaponData->m_IsOneBullet)
 			{
-				UE_LOG(LogTemp,Warning,TEXT("Reload Activate"))
-		
-				DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_Reload::OnReloadComplete);
-				DelayTask->ReadyForActivation();
+				OneBulletReload();
 			}
 			else
 			{
-				EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+				DefaultReload();
 			}
 		}
-
 	}
-
 }
 
 void UKHGameplayAbility_Reload::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -101,4 +91,107 @@ void UKHGameplayAbility_Reload::OnReloadComplete()
 		ASC->ApplyModToAttribute(Attributes->GetCurrentAmmoAttribute(), EGameplayModOp::Override, MaxAmmo);
 	}
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+}
+
+void UKHGameplayAbility_Reload::DefaultReload()
+{
+	if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetCurrentActorInfo()->AvatarActor.Get()))
+	{
+
+		
+		FString strWeaponType = EnumToString(pPlayer->m_eWeaponType);
+		FName ReloadMontageName = FName(*FString::Printf(TEXT("Reload_%s"), *strWeaponType));
+		if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(ReloadMontageName))
+		{
+			pPlayer->Multicast_PlayAnimMontage(ReloadMontage);
+			
+			const float MontageDuration = ReloadMontage->GetPlayLength();
+			
+			UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, MontageDuration);
+			if (DelayTask)
+			{
+				UE_LOG(LogTemp,Warning,TEXT("Reload Activate"))
+		
+				DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_Reload::OnReloadComplete);
+				DelayTask->ReadyForActivation();
+			}
+			else
+			{
+				EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
+			}
+		}
+
+	}
+
+}
+
+void UKHGameplayAbility_Reload::OnReloadCheck(FGameplayEventData Payload)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	const UKHAttributeSet_Character* Attributes = ASC->GetSet<UKHAttributeSet_Character>();
+	
+	if (ASC && Attributes)
+	{
+		const float MaxAmmo = Attributes->GetMaxAmmo();
+		ASC->ApplyModToAttribute(Attributes->GetCurrentAmmoAttribute(), EGameplayModOp::AddFinal, 1);
+		const float CurrentAmmo = Attributes->GetCurrentAmmo();
+
+		if (MaxAmmo <= CurrentAmmo)
+		{
+			if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetCurrentActorInfo()->AvatarActor))
+			{
+				if (USkeletalMeshComponent* Mesh = GetOwningComponentFromActorInfo())
+				{
+					if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+					{
+						FString ReloadMontageName = TEXT("Reload_") + EnumToString(pPlayer->m_eWeaponType);
+						if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(*ReloadMontageName))
+						{
+							AnimInst->Montage_JumpToSection("End", ReloadMontage);
+						}
+					}
+				}
+			}
+			EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
+		}
+		else
+		{
+			
+		}
+	}
+}
+
+void UKHGameplayAbility_Reload::OneBulletReload()
+{
+	if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetCurrentActorInfo()->AvatarActor.Get()))
+	{
+
+		
+		FString strWeaponType = EnumToString(pPlayer->m_eWeaponType);
+		FName ReloadMontageName = FName(*FString::Printf(TEXT("Reload_%s"), *strWeaponType));
+		if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(ReloadMontageName))
+		{
+			pPlayer->Multicast_PlayAnimMontage(ReloadMontage);
+
+			UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+					this,               
+					ReloadCheckEventTag,   
+					nullptr,            
+					false                
+				);
+
+			if (EventTask == nullptr)
+			{
+				EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
+				return;
+			}
+
+
+			EventTask->EventReceived.AddDynamic(this, &UKHGameplayAbility_Reload::OnReloadCheck);
+
+			EventTask->ReadyForActivation();
+
+		}
+
+	}
 }

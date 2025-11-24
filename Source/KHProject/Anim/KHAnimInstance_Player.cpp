@@ -40,6 +40,8 @@ void UKHAnimInstance_Player::NativeUpdateAnimation(float DeltaSeconds)
 			FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(ControlRotation, ActorRotation);
 
 			AimRotation = DeltaRot;
+
+			CurrentWeaponType = PlayerCharacter->m_eWeaponType;
 		}
 	}
 }

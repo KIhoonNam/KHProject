@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "DataTable/KHDataTable_WeaponData.h"
 #include "KHAnimInstance_Player.generated.h"
 
 /**
@@ -29,6 +30,8 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	FRotator AimRotation;
 
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	EWeaponType CurrentWeaponType;
 public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 

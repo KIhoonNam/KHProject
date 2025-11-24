@@ -132,57 +132,60 @@ void UKHGameplayAbility_FireWeapon::Fire()
 				{
 					CameraEndPoint = CameraHitResult.Location;
 				}
-
-				FVector vecDir = (CameraEndPoint - WeaponMuzzleLocation).GetSafeNormal();
-				if (m_pWeaponData->SpreadAngle > 0.0f)
+				int32 Count = m_pWeaponData->m_Bullet;
+				for (int i = 0 ; i < Count ; i++)
 				{
-					// 라디안으로 변환 후 랜덤 벡터 생성
-					float SpreadRad = FMath::DegreesToRadians(m_pWeaponData->SpreadAngle);
-					vecDir = FMath::VRandCone(vecDir, SpreadRad);
-				}
-				FHitResult HitResult;
-				UKismetSystemLibrary::LineTraceSingle(GetWorld(), 
-					WeaponMuzzleLocation,
-					WeaponMuzzleLocation +vecDir *10000.0f,
-					UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2),
-					false,
-					TArray<AActor*>(),
-					EDrawDebugTrace::ForDuration,
-					HitResult,
-					true,
-					FLinearColor::Red,
-					FLinearColor::Green,
-					5.0f);
-				if (HitResult.bBlockingHit && HitResult.GetActor())
-				{
-					FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
-			
-					if (SpecHandle.IsValid())
+					FVector vecDir = (CameraEndPoint - WeaponMuzzleLocation).GetSafeNormal();
+					if (m_pWeaponData->SpreadAngle > 0.0f)
 					{
-						SpecHandle.Data->SetSetByCallerMagnitude(
-			FGameplayTag::RequestGameplayTag(FName("Data.Damage")), 
-			-m_pWeaponData->m_fDamage 
-		);
-						
-						FGameplayEffectContextHandle ContextHandle = SpecHandle.Data->GetContext().Duplicate();
-				
-						ContextHandle.AddInstigator(GetCurrentActorInfo()->AvatarActor.Get(), GetCurrentActorInfo()->AvatarActor.Get());
-						ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
-
-						SpecHandle.Data->SetContext(ContextHandle);
+						// 라디안으로 변환 후 랜덤 벡터 생성
+						float SpreadRad = FMath::DegreesToRadians(m_pWeaponData->SpreadAngle);
+						vecDir = FMath::VRandCone(vecDir, SpreadRad);
 					}
-			
-			
-					FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromHitResult(HitResult);
-
-			
-					ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
-
-					UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, m_pWeaponData->m_fCoolDown);
-					if (DelayTask)
+					FHitResult HitResult;
+					UKismetSystemLibrary::LineTraceSingle(GetWorld(), 
+						WeaponMuzzleLocation,
+						WeaponMuzzleLocation +vecDir *10000.0f,
+						UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2),
+						false,
+						TArray<AActor*>(),
+						EDrawDebugTrace::ForDuration,
+						HitResult,
+						true,
+						FLinearColor::Red,
+						FLinearColor::Green,
+						5.0f);
+					if (HitResult.bBlockingHit && HitResult.GetActor())
 					{
-						DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_FireWeapon::OnFireCool);
-						DelayTask->ReadyForActivation();
+						FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
+			
+						if (SpecHandle.IsValid())
+						{
+							SpecHandle.Data->SetSetByCallerMagnitude(
+				FGameplayTag::RequestGameplayTag(FName("Data.Damage")), 
+				-m_pWeaponData->m_fDamage /m_pWeaponData->m_Bullet
+			);
+						
+							FGameplayEffectContextHandle ContextHandle = SpecHandle.Data->GetContext().Duplicate();
+				
+							ContextHandle.AddInstigator(GetCurrentActorInfo()->AvatarActor.Get(), GetCurrentActorInfo()->AvatarActor.Get());
+							ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
+
+							SpecHandle.Data->SetContext(ContextHandle);
+						}
+			
+			
+						FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromHitResult(HitResult);
+
+			
+						ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
+
+						UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, m_pWeaponData->m_fCoolDown);
+						if (DelayTask)
+						{
+							DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_FireWeapon::OnFireCool);
+							DelayTask->ReadyForActivation();
+						}
 					}
 				}
 			}

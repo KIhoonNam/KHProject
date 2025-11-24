@@ -22,6 +22,8 @@ public:
 	bool m_IsState;
 
 
+
+	
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	
 };

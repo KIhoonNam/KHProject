@@ -28,4 +28,15 @@ public:
 private:
 	UFUNCTION()
 	void OnReloadComplete();
+
+	void DefaultReload();
+
+	UFUNCTION()
+	void OnReloadCheck(FGameplayEventData Payload);
+	
+	void OneBulletReload();
+
+
+private:
+	FGameplayTag ReloadCheckEventTag;
 };

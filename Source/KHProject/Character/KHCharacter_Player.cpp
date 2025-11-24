@@ -102,8 +102,7 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 void AKHCharacter_Player::BeginPlay()
 {
 	Super::BeginPlay();
-
-	m_eWeaponType = EWeaponType::Rifle;
+	
 	WeaponAttachToSocket(m_eWeaponType);
 }
 
@@ -311,6 +310,14 @@ void AKHCharacter_Player::OnASCInitialized()
 		{
 			AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetHealthAttribute(), EGameplayModOp::Override, pAttributes->GetMaxHealth());
 			AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetCurrentAmmoAttribute(), EGameplayModOp::Override, pAttributes->GetMaxAmmo());
+
+			FWeaponData* pData = GetWeaponData();
+
+			if (pData)
+			{
+				AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetMaxAmmoAttribute(), EGameplayModOp::Override, pData->m_Ammo);
+				AbilitySystemComponent->ApplyModToAttribute(pAttributes->GetCurrentAmmoAttribute(), EGameplayModOp::Override,pAttributes->GetMaxAmmo());
+			}
 		}
 
 	
@@ -331,8 +338,15 @@ void AKHCharacter_Player::OnASCInitialized()
 
 void AKHCharacter_Player::WeaponAttachToSocket(EWeaponType _weaponType)
 {
-	if (WeaponComponent)
+	if (WeaponComponent && m_WeaponDataTable)
 	{
+		
+		FWeaponData* pData = GetWeaponData();
+
+		if (pData)
+		{
+			WeaponComponent->SetSkeletalMesh(pData->m_pWeaponSkel);
+		}
 		FString strSocketName = EnumToString(_weaponType);
 		strSocketName += "Socket";
 		UE_LOG(LogTemp,Warning,TEXT("Current Weapon Socket: %s"),*strSocketName)
