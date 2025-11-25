@@ -30,7 +30,9 @@ public:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> Text_PlayerReady;
 	
-
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> Text_PlayerWeapon;
+	
 public:
 	void SetSlots(FLobbyPlayerInfo InPlayerInfo);
 

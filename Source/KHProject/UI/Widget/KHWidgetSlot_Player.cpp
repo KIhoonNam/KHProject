@@ -2,8 +2,9 @@
 
 
 #include "UI/Widget/KHWidgetSlot_Player.h"
-
+#include "Character/KHCharacter_Player.h"
 #include "TextBlock.h"
+#include "DataTable/KHDataTable_WeaponData.h"
 
 
 
@@ -13,6 +14,7 @@ void UKHWidgetSlot_Player::SetSlots(FLobbyPlayerInfo InPlayerInfo)
 	PlayerName = InPlayerInfo.PlayerName;
 
 	bIsReady = InPlayerInfo.bIsReady;
+	
 
 	if (Text_PlayerName)
 	{
@@ -23,6 +25,12 @@ void UKHWidgetSlot_Player::SetSlots(FLobbyPlayerInfo InPlayerInfo)
 	{
 		FString strReady = bIsReady ? "Ready" : "Not Ready";
 		Text_PlayerReady->SetText(FText::FromString(strReady));
+	}
+
+	if (Text_PlayerWeapon)
+	{
+		FString strWeapon = InPlayerInfo.m_eWeaponType == EWeaponType::None ? "" : EnumToString(InPlayerInfo.m_eWeaponType);
+		Text_PlayerWeapon->SetText(FText::FromString(strWeapon));
 	}
 }
 

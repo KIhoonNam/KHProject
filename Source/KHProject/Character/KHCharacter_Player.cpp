@@ -118,9 +118,10 @@ void AKHCharacter_Player::PossessedBy(AController* NewController)
 		return;
 	}
 	
-	APlayerState* PS = GetPlayerState();
+	AKHPlayerState* PS = GetPlayerState<AKHPlayerState>();
 	if (PS)
 	{
+		m_eWeaponType = PS->m_eWeaponType;
 		bASCInitialized = true;
 		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 		if (AbilitySystemComponent && BaseStatsEffect)
@@ -154,6 +155,7 @@ void AKHCharacter_Player::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKHCharacter_Player, m_IsCurrentDowned);
+	DOREPLIFETIME(AKHCharacter_Player,m_eWeaponType);
 }
 
 void AKHCharacter_Player::Tick(float DeltaSeconds)

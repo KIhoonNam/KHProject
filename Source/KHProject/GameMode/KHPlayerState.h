@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "DataTable/KHDataTable_WeaponData.h"
 #include "KHPlayerState.generated.h"
 
 /**
@@ -18,9 +19,11 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_IsDowned)
 	bool bIsDown;
 	
-
+	UPROPERTY(Replicated)
+	EWeaponType m_eWeaponType = EWeaponType::None;
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void CopyProperties(APlayerState* PlayerState) override;
 public:
 	bool IsDown() {return bIsDown;}
 	
@@ -29,4 +32,8 @@ public:
 	
 	UFUNCTION()
 	void OnRep_IsDowned();
+
+public:
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_WeaponChange(EWeaponType eweapon);
 };

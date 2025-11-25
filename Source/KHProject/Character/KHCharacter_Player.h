@@ -136,7 +136,7 @@ public:
 	UFUNCTION()
 	void OnRep_IsDowned();
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,Replicated)
 	EWeaponType m_eWeaponType;
 	
 };

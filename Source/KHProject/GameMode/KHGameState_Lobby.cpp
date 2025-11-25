@@ -17,15 +17,31 @@ void AKHGameState_Lobby::OnRep_CurrentPlayers()
 void AKHGameState_Lobby::OnPlayerReady(const FString& PlayerName)
 {
 	FLobbyPlayerInfo* PlayerInfoToModify = arrPlayerNames.FindByPredicate(
-	[PlayerName](const FLobbyPlayerInfo& Info) // 람다 함수 시작
+	[PlayerName](const FLobbyPlayerInfo& Info)
 	{
 		return Info.PlayerName == PlayerName;
-	} // 람다 함수 끝
+	} 
 );
 	if (PlayerInfoToModify)
 	{
 		bool _IsReady = PlayerInfoToModify->bIsReady ;
 		PlayerInfoToModify->bIsReady = !_IsReady;
+
+		OnRep_CurrentPlayers();
+	}
+}
+
+void AKHGameState_Lobby::OnPlayerWeapon(EWeaponType _eWeaponType,const FString& PlayerName)
+{
+	FLobbyPlayerInfo* PlayerInfoToModify = arrPlayerNames.FindByPredicate(
+[PlayerName](const FLobbyPlayerInfo& Info)
+{
+	return Info.PlayerName == PlayerName;
+} 
+);
+	if (PlayerInfoToModify)
+	{
+		PlayerInfoToModify->m_eWeaponType = _eWeaponType;
 
 		OnRep_CurrentPlayers();
 	}

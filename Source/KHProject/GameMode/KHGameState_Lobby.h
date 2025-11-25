@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataTable/KHDataTable_WeaponData.h"
 #include "GameFramework/GameState.h"
 #include "GameFramework/GameStateBase.h"
 #include "KHGameState_Lobby.generated.h"
@@ -17,10 +18,14 @@ struct FLobbyPlayerInfo
 	UPROPERTY()
 	FString PlayerName;
 
+	UPROPERTY()
+	EWeaponType m_eWeaponType;
+	
 	FLobbyPlayerInfo()
 	{
 		PlayerName = "";
 		bIsReady = false;
+		m_eWeaponType =EWeaponType::None;
 	}
 	
 	bool operator==(const FLobbyPlayerInfo& Other) const
@@ -53,6 +58,7 @@ public:
 	void OnRep_CurrentPlayers();
 
 	void OnPlayerReady(const FString& PlayerName);
+	void OnPlayerWeapon(EWeaponType _eWeaponType, const FString& PlayerName);
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

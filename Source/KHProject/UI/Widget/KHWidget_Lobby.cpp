@@ -9,6 +9,7 @@
 #include "VerticalBox.h"
 #include "Controller/KHPlayerController_Player.h"
 #include "GameMode/KHGameState_Lobby.h"
+#include "GameMode/KHPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -86,6 +87,14 @@ void UKHWidget_Lobby::OnClickReady()
 {
 	if (AKHPlayerController_Player* pController = Cast<AKHPlayerController_Player>(GetOwningPlayer()))
 	{
+		if (AKHPlayerState* pState = pController->GetPlayerState<AKHPlayerState>())
+		{
+			if (pState->m_eWeaponType == EWeaponType::None)
+			{
+				UE_LOG(LogTemp,Warning,TEXT("No Select Weapon"))
+				return;
+			}
+		}
 		pController->Server_PlayerReady();
 	}
 }
