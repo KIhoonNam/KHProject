@@ -52,7 +52,7 @@ void UKHGameplayAbility_Reload::ActivateAbility(const FGameplayAbilitySpecHandle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-
+	UE_LOG(LogTemp,Warning,TEXT("ActivateReload"))
 	if (AKHCharacter_Player* pPlayer= Cast<AKHCharacter_Player>(ActorInfo->AvatarActor))
 	{
 		FWeaponData* pWeaponData = pPlayer->GetWeaponData();
@@ -127,38 +127,35 @@ void UKHGameplayAbility_Reload::DefaultReload()
 
 void UKHGameplayAbility_Reload::OnReloadCheck(FGameplayEventData Payload)
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	const UKHAttributeSet_Character* Attributes = ASC->GetSet<UKHAttributeSet_Character>();
 	
-	if (ASC && Attributes)
-	{
-		const float MaxAmmo = Attributes->GetMaxAmmo();
-		ASC->ApplyModToAttribute(Attributes->GetCurrentAmmoAttribute(), EGameplayModOp::AddFinal, 1);
-		const float CurrentAmmo = Attributes->GetCurrentAmmo();
-
-		if (MaxAmmo <= CurrentAmmo)
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+		const UKHAttributeSet_Character* Attributes = ASC->GetSet<UKHAttributeSet_Character>();
+	
+		if (ASC && Attributes)
 		{
-			if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetCurrentActorInfo()->AvatarActor))
+			const float MaxAmmo = Attributes->GetMaxAmmo();
+			ASC->ApplyModToAttribute(Attributes->GetCurrentAmmoAttribute(), EGameplayModOp::AddFinal, 1);
+			const float CurrentAmmo = Attributes->GetCurrentAmmo();
+
+			if (MaxAmmo <= CurrentAmmo)
 			{
-				if (USkeletalMeshComponent* Mesh = GetOwningComponentFromActorInfo())
+				if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetCurrentActorInfo()->AvatarActor))
 				{
-					if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+				
+					FString ReloadMontageName = TEXT("Reload_") + EnumToString(pPlayer->m_eWeaponType);
+					if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(*ReloadMontageName))
 					{
-						FString ReloadMontageName = TEXT("Reload_") + EnumToString(pPlayer->m_eWeaponType);
-						if (UAnimMontage* ReloadMontage = pPlayer->GetAnimMontage(*ReloadMontageName))
-						{
-							AnimInst->Montage_JumpToSection("End", ReloadMontage);
-						}
+						pPlayer->Multicast_JumpAnimMontage("End", ReloadMontage);
 					}
 				}
+				EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 			}
-			EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
-		}
-		else
-		{
+			else
+			{
 			
+			}
 		}
-	}
+	
 }
 
 void UKHGameplayAbility_Reload::OneBulletReload()

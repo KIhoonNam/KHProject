@@ -100,6 +100,17 @@ void AKHCharacterBase::OnRep_PlayerState()
 	// }
 }
 
+void AKHCharacterBase::Multicast_JumpAnimMontage_Implementation(const FString& _section, UAnimMontage* MontageToPlay)
+{
+	if (GetMesh()&& MontageToPlay)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_JumpToSection(*_section,MontageToPlay);
+		}
+	}
+}
+
 void AKHCharacterBase::Multicast_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
 {
 	if (GetMesh()&& MontageToPlay)

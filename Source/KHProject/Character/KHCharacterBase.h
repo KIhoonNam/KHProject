@@ -55,6 +55,9 @@ public:
 public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAnimMontage(UAnimMontage* MontageToPlay);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_JumpAnimMontage(const FString& _section,UAnimMontage* MontageToPlay);
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

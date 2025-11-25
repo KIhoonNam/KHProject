@@ -125,7 +125,7 @@ void UKHGameplayAbility_FireWeapon::Fire()
 					FLinearColor::Green,
 					5.0f);
 
-			
+				
 				FVector WeaponMuzzleLocation = pPlayer->GetAimStartLocation();
 				FVector CameraEndPoint = WeaponMuzzleLocation + FVector(pPlayer->GetAimEndRotation())*10000.0f;
 				if (CameraHitResult.bBlockingHit && CameraHitResult.GetActor())
@@ -133,6 +133,8 @@ void UKHGameplayAbility_FireWeapon::Fire()
 					CameraEndPoint = CameraHitResult.Location;
 				}
 				int32 Count = m_pWeaponData->m_Bullet;
+				TMap<AActor*,float> mapDamage;
+				TMap<AActor*, FHitResult> mapResult;
 				for (int i = 0 ; i < Count ; i++)
 				{
 					FVector vecDir = (CameraEndPoint - WeaponMuzzleLocation).GetSafeNormal();
@@ -157,36 +159,55 @@ void UKHGameplayAbility_FireWeapon::Fire()
 						5.0f);
 					if (HitResult.bBlockingHit && HitResult.GetActor())
 					{
-						FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
-			
-						if (SpecHandle.IsValid())
+						float fDamage = m_pWeaponData->m_fDamage/Count;
+						if (mapDamage.Contains(HitResult.GetActor()))
 						{
-							SpecHandle.Data->SetSetByCallerMagnitude(
-				FGameplayTag::RequestGameplayTag(FName("Data.Damage")), 
-				-m_pWeaponData->m_fDamage /m_pWeaponData->m_Bullet
-			);
-						
-							FGameplayEffectContextHandle ContextHandle = SpecHandle.Data->GetContext().Duplicate();
-				
-							ContextHandle.AddInstigator(GetCurrentActorInfo()->AvatarActor.Get(), GetCurrentActorInfo()->AvatarActor.Get());
-							ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
-
-							SpecHandle.Data->SetContext(ContextHandle);
+							mapDamage[HitResult.GetActor()] += fDamage;
 						}
-			
-			
-						FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromHitResult(HitResult);
-
-			
-						ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
-
-						UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, m_pWeaponData->m_fCoolDown);
-						if (DelayTask)
+						else
 						{
-							DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_FireWeapon::OnFireCool);
-							DelayTask->ReadyForActivation();
+							mapDamage.Emplace(HitResult.GetActor(), fDamage);
+							mapResult.Emplace(HitResult.GetActor(), HitResult);
 						}
+
 					}
+				}
+
+				for (auto& HitMap : mapDamage)
+				{
+					FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass);
+			
+					if (SpecHandle.IsValid())
+					{
+						SpecHandle.Data->SetSetByCallerMagnitude(
+						FGameplayTag::RequestGameplayTag(FName("Data.Damage")), 
+						-HitMap.Value
+						);
+						
+						FGameplayEffectContextHandle ContextHandle = SpecHandle.Data->GetContext().Duplicate();
+				
+						ContextHandle.AddInstigator(GetCurrentActorInfo()->AvatarActor.Get(), GetCurrentActorInfo()->AvatarActor.Get());
+						ContextHandle.AddSourceObject(GetAvatarActorFromActorInfo());
+
+						SpecHandle.Data->SetContext(ContextHandle);
+					}
+			
+			
+					FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromHitResult(mapResult[HitMap.Key]);
+
+			
+					ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
+				}
+
+				UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, m_pWeaponData->m_fCoolDown);
+				if (DelayTask)
+				{
+					DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_FireWeapon::OnFireCool);
+					DelayTask->ReadyForActivation();
+				}
+				else
+				{
+					EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 				}
 			}
 		}
