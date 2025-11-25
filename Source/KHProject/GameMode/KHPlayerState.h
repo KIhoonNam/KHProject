@@ -20,7 +20,7 @@ public:
 	bool bIsDown;
 	
 	UPROPERTY(Replicated)
-	EWeaponType m_eWeaponType = EWeaponType::None;
+	EWeaponType m_eWeaponType = EWeaponType::Shotgun;
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void CopyProperties(APlayerState* PlayerState) override;

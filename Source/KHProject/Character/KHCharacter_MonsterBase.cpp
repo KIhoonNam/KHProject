@@ -9,6 +9,7 @@
 #include "GameplayEffectExtension.h"
 #include "KHAttributeSet_Character.h"
 #include "Components/CapsuleComponent.h"
+#include "GameMode/KHGameMode_Play.h"
 
 
 AKHCharacter_MonsterBase::AKHCharacter_MonsterBase()
@@ -136,6 +137,14 @@ void AKHCharacter_MonsterBase::HealthEmpty()
 	{
 		Destroy();
 	},5.0f,false);
+
+	if (HasAuthority())
+	{
+		if (AKHGameMode_Play* pPlayMode = Cast<AKHGameMode_Play>(GetWorld()->GetAuthGameMode()))
+		{
+			pPlayMode->OnMonsterKilled();
+		}
+	}
 }
 
 void AKHCharacter_MonsterBase::OnHit(const FGameplayEffectModCallbackData& Data)

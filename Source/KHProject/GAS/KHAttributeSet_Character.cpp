@@ -68,7 +68,7 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 			if (GetHealth() <= 0.0f)
 			{
 			
-		
+				pCharacter->HealthEmpty();
 			
 			}
 		}
