@@ -41,7 +41,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void OnRep_PlayerState() override;
-	virtual void HealthEmpty() override;
+	virtual void HealthEmpty(const FGameplayEffectModCallbackData& Data) override;
 	
 	void OnASCInitialized();
 	void WeaponAttachToSocket(EWeaponType _weaponType);

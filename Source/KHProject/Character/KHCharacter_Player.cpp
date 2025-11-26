@@ -123,7 +123,7 @@ void AKHCharacter_Player::PossessedBy(AController* NewController)
 	{
 		m_eWeaponType = PS->m_eWeaponType;
 		bASCInitialized = true;
-		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 		if (AbilitySystemComponent && BaseStatsEffect)
 		{
 			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
@@ -221,7 +221,7 @@ void AKHCharacter_Player::OnRep_PlayerState()
 	
 	
         
-		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 
 		OnASCInitialized(); 
@@ -239,9 +239,9 @@ void AKHCharacter_Player::OnRep_PlayerState()
 	}
 }
 
-void AKHCharacter_Player::HealthEmpty()
+void AKHCharacter_Player::HealthEmpty(const FGameplayEffectModCallbackData& Data)
 {
-	Super::HealthEmpty();
+	Super::HealthEmpty(Data);
 
 	if (!AbilitySystemComponent)
 	{

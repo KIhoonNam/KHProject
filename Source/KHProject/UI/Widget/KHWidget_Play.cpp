@@ -24,6 +24,10 @@ void UKHWidget_Play::NativeConstruct()
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetCurrentAmmoAttribute()).AddUObject(this, &UKHWidget_Play::OnCurrentAmmoChanged);
 			
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetHealthAttribute()).AddUObject(this, &UKHWidget_Play::OnHealthChanged);
+
+			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetXPAttribute()).AddUObject(this, &UKHWidget_Play::OnXPChanged);
+			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetMaxXPAttribute()).AddUObject(this, &UKHWidget_Play::OnMaxXPChange);
+			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetCharacterLevelAttribute()).AddUObject(this, &UKHWidget_Play::OnLevelChange);
 			
 			if (Text_CurrentAmmo)
 			{
@@ -41,6 +45,24 @@ void UKHWidget_Play::NativeConstruct()
 			if (Progress_Health)
 			{
 				Progress_Health->SetPercent(Attributes->GetHealth() / Attributes->GetMaxHealth());
+			}
+			float XP =Attributes->GetXP();
+			MaxXP = Attributes->GetMaxXP();
+			if (Text_CurrentXP)
+			{
+				Text_CurrentXP->SetText(FText::AsNumber(XP));
+			}
+			if (Text_MaxXP)
+			{
+				Text_MaxXP->SetText(FText::AsNumber(MaxXP));
+			}
+			if (Text_Level)
+			{
+				Text_Level->SetText(FText::AsNumber(Attributes->GetCharacterLevel()));
+			}
+			if (Progress_XP)
+			{
+				Progress_XP->SetPercent(XP / MaxXP);
 			}
 		}
 	}
@@ -89,5 +111,36 @@ void UKHWidget_Play::OnHealthChanged(const FOnAttributeChangeData& OnAttributeCh
 	if (Text_CurrentHP)
 	{
 		Text_CurrentHP->SetText(FText::AsNumber(OnAttributeChangeData.NewValue));
+	}
+}
+
+void UKHWidget_Play::OnXPChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	if (Text_CurrentXP)
+	{
+		Text_CurrentXP->SetText(FText::AsNumber(OnAttributeChangeData.NewValue));
+	}
+
+	if (Progress_XP)
+	{
+		Progress_XP->SetPercent(OnAttributeChangeData.NewValue/MaxXP);
+	}
+}
+
+void UKHWidget_Play::OnMaxXPChange(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	if (Text_MaxXP)
+	{
+		Text_MaxXP->SetText(FText::AsNumber(OnAttributeChangeData.NewValue));
+	}
+
+	MaxXP =OnAttributeChangeData.NewValue;
+}
+
+void UKHWidget_Play::OnLevelChange(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	if (Text_Level)
+	{
+		Text_Level->SetText(FText::AsNumber(OnAttributeChangeData.NewValue));
 	}
 }

@@ -63,7 +63,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UKHAttributeSet_Character> m_pAttributeSet;
+	TObjectPtr<UKHAttributeSet_Character> m_StatAttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	TSubclassOf<UGameplayEffect> BaseStatsEffect;
@@ -71,7 +71,7 @@ protected:
 
 	
 public:
-		virtual void HealthEmpty();
+		virtual void HealthEmpty(const FGameplayEffectModCallbackData& Data);
 
 	virtual void OnHit(const FGameplayEffectModCallbackData& Data);
 

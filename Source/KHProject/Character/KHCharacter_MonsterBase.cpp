@@ -8,6 +8,7 @@
 #include "BrainComponent.h"
 #include "GameplayEffectExtension.h"
 #include "KHAttributeSet_Character.h"
+#include "KHCharacter_Player.h"
 #include "Components/CapsuleComponent.h"
 #include "GameMode/KHGameMode_Play.h"
 
@@ -21,9 +22,9 @@ AKHCharacter_MonsterBase::AKHCharacter_MonsterBase()
 
 float AKHCharacter_MonsterBase::GetHealth() const
 {
-	if (m_pAttributeSet)
+	if (m_StatAttributeSet)
 	{
-		return m_pAttributeSet->GetHealth();
+		return m_StatAttributeSet->GetHealth();
 	}
 	return 0.0f;
 }
@@ -82,9 +83,9 @@ void AKHCharacter_MonsterBase::PossessedBy(AController* NewController)
 				}
 				
 				AbilitySystemComponent->ApplyModToAttribute(
-					m_pAttributeSet->GetHealthAttribute(), 
+					m_StatAttributeSet->GetHealthAttribute(), 
 					EGameplayModOp::Override, 
-					m_pAttributeSet->GetMaxHealth()
+					m_StatAttributeSet->GetMaxHealth()
 				);
 			}
 			if (m_pAIMeleeAbility)
@@ -110,9 +111,9 @@ void AKHCharacter_MonsterBase::Die()
 		
 }
 
-void AKHCharacter_MonsterBase::HealthEmpty()
+void AKHCharacter_MonsterBase::HealthEmpty(const FGameplayEffectModCallbackData& Data)
 {
-	Super::HealthEmpty();
+	Super::HealthEmpty(Data);
 
 	if (!AbilitySystemComponent) return;
 
@@ -129,6 +130,24 @@ void AKHCharacter_MonsterBase::HealthEmpty()
 		AIController->GetBrainComponent()->StopLogic("Dead");
 	}
 
+	if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(Data.EffectSpec.GetContext().GetInstigator()))
+	{
+		if (UAbilitySystemComponent* pPlayerASC = pPlayer->GetAbilitySystemComponent())
+		{
+			if (m_pGiveExp)
+			{
+				FGameplayEffectContextHandle Context = pPlayerASC->MakeEffectContext();
+				Context.AddSourceObject(this);
+				Context.AddInstigator(this,this);
+				FGameplayEffectSpecHandle SpecHandle = pPlayerASC->MakeOutgoingSpec(m_pGiveExp, 1.0f, Context);
+				if (SpecHandle.IsValid())
+				{
+					pPlayerASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
+				
+			}
+		}
+	}
 	
 	Multicast_MonsterDie(DieMontage);
 

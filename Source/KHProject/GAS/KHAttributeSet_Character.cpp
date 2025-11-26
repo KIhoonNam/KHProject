@@ -7,6 +7,7 @@
 #include "GameplayEffectExtension.h"
 #include "GameplayEffect.h"
 #include "KHCharacterBase.h"
+#include "KHCharacter_Player.h"
 
 UKHAttributeSet_Character::UKHAttributeSet_Character()
 {
@@ -19,8 +20,17 @@ UKHAttributeSet_Character::UKHAttributeSet_Character()
 	InitMaxAmmo(30.f);
 	UObject* Outer = GetOuter();
 	FString OuterName = Outer ? Outer->GetName() : TEXT("NULL");
-    
+	InitXP(0.0f);          
+	InitMaxXP(3.0f);     
+	InitCharacterLevel(1.0f);
 
+
+	static ConstructorHelpers::FClassFinder<UGameplayEffect> BP_UpdateXP(TEXT("/Game/GAS/GE_UpdateXP.GE_UpdateXP_C"));
+
+	if (BP_UpdateXP.Succeeded())
+	{
+		m_pUpdateXP = BP_UpdateXP.Class;
+	}
 }
 
 void UKHAttributeSet_Character::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -41,6 +51,13 @@ void UKHAttributeSet_Character::PreAttributeChange(const FGameplayAttribute& Att
 	{
 		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxAmmo());
 	}
+
+	if (Attribute == GetXPAttribute())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("XP Update Attempt: NewValue=%f, CurrentMaxXP=%f"), NewValue, GetMaxXP());
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxXP());
+	}
+	
 }
 
 void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -53,7 +70,7 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 	{
 		return;
 	}
-
+	PostXPExecute(Data);
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		if (AKHCharacterBase* pCharacter = Cast<AKHCharacterBase>(Data.Target.AbilityActorInfo->AvatarActor.Get()))
@@ -68,10 +85,40 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 			if (GetHealth() <= 0.0f)
 			{
 			
-				pCharacter->HealthEmpty();
+				pCharacter->HealthEmpty(Data);
+
+	
 			
 			}
 		}
+	}
+}
+
+void UKHAttributeSet_Character::PostXPExecute(const FGameplayEffectModCallbackData& Data)
+{
+	if (Data.EvaluatedData.Attribute == GetXPAttribute())
+	{
+		float CurrentXP = GetXP();
+		float CurrentMaxXP = GetMaxXP();
+		
+		if (CurrentXP >= CurrentMaxXP)
+		{
+			CurrentXP -= CurrentMaxXP; 
+			
+			float NewLevel = GetCharacterLevel() + 1.0f;
+			SetCharacterLevel(NewLevel);
+			if (UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent())
+			{
+				FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+				Context.AddSourceObject(GetOwningActor());
+				if (m_pUpdateXP)
+				{
+					ASC->ApplyGameplayEffectToSelf(m_pUpdateXP.GetDefaultObject(), NewLevel,Context);
+				}
+			}
+		}
+
+		SetXP(CurrentXP); 
 	}
 }
 
@@ -84,6 +131,9 @@ void UKHAttributeSet_Character::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, MoveSpeed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, CurrentAmmo, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, MaxAmmo, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, XP, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, MaxXP, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, CharacterLevel, COND_None, REPNOTIFY_Always);
 }
 
 void UKHAttributeSet_Character::OnRep_Health(const FGameplayAttributeData& OldHealth)
@@ -109,4 +159,19 @@ void UKHAttributeSet_Character::OnRep_CurrentAmmo(const FGameplayAttributeData& 
 void UKHAttributeSet_Character::OnRep_MaxAmmo(const FGameplayAttributeData& OldMaxAmmo)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, MaxAmmo, OldMaxAmmo);
+}
+
+void UKHAttributeSet_Character::OnRep_XP(const FGameplayAttributeData& OldXp)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, XP, OldXp);
+}
+
+void UKHAttributeSet_Character::OnRep_MaxXP(const FGameplayAttributeData& OldMaxXp)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, MaxXP, OldMaxXp);
+}
+
+void UKHAttributeSet_Character::OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, CharacterLevel, OldCharacterLevel);
 }

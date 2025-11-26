@@ -20,7 +20,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GAS")
 	float GetHealth() const;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+	TSubclassOf<UGameplayEffect> m_pGiveExp;
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TSubclassOf<UKHGameplayAbility_AIMelee> m_pAIMeleeAbility;
 
@@ -42,7 +45,7 @@ public:
 public:
 	void Die();
 
-	virtual void HealthEmpty() override;
+	virtual void HealthEmpty(const FGameplayEffectModCallbackData& Data) override;
 
 	virtual void OnHit(const FGameplayEffectModCallbackData& Data) override;
 };

@@ -25,6 +25,8 @@ public:
 
 	UKHAttributeSet_Character();
 
+	TSubclassOf<UGameplayEffect> m_pUpdateXP;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes|Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, Health)
@@ -47,13 +49,25 @@ public:
 	FGameplayAttributeData CurrentAmmo;
 	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, CurrentAmmo)
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_XP)
+    FGameplayAttributeData XP;
+    ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, XP)
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxXP)
+    FGameplayAttributeData MaxXP;
+    ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, MaxXP)
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CharacterLevel)
+    FGameplayAttributeData CharacterLevel;
+    ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, CharacterLevel)
 
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	void PostXPExecute(const FGameplayEffectModCallbackData& Data);
+	
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -73,4 +87,13 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_MaxAmmo(const FGameplayAttributeData& OldMaxAmmo);
+	
+	UFUNCTION()
+    virtual void OnRep_XP(const FGameplayAttributeData& OldXP);
+    
+    UFUNCTION()
+    virtual void OnRep_MaxXP(const FGameplayAttributeData& OldMaxXP);
+   
+    UFUNCTION()
+    virtual void OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel);
 };

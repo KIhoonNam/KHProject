@@ -21,7 +21,7 @@ AKHCharacterBase::AKHCharacterBase()
 
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 	
-	m_pAttributeSet = CreateDefaultSubobject<UKHAttributeSet_Character>(TEXT("CharacterAttributeSet"));
+	m_StatAttributeSet = CreateDefaultSubobject<UKHAttributeSet_Character>(TEXT("m_StatAttributeSet"));
 }
 
 UAbilitySystemComponent* AKHCharacterBase::GetAbilitySystemComponent() const
@@ -122,7 +122,7 @@ void AKHCharacterBase::Multicast_PlayAnimMontage_Implementation(UAnimMontage* Mo
 	}
 }
 
-void AKHCharacterBase::HealthEmpty()
+void AKHCharacterBase::HealthEmpty(const FGameplayEffectModCallbackData& Data)
 {
 	
 }

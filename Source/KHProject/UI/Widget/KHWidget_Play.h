@@ -36,9 +36,25 @@ public:
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UProgressBar> Progress_Health;
 
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> Text_CurrentXP;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> Text_MaxXP;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> Text_Level;
+	
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UProgressBar> Progress_XP;
+
 	UPROPERTY()
 	float MaxHealthValue;
+
+	UPROPERTY()
+	float MaxXP;
 public:
+
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
@@ -46,4 +62,7 @@ public:
 private:
 	void OnCurrentAmmoChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+	void OnXPChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+	void OnMaxXPChange(const FOnAttributeChangeData& OnAttributeChangeData);
+	void OnLevelChange(const FOnAttributeChangeData& OnAttributeChangeData);
 };
