@@ -65,4 +65,5 @@ private:
 	void OnXPChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void OnMaxXPChange(const FOnAttributeChangeData& OnAttributeChangeData);
 	void OnLevelChange(const FOnAttributeChangeData& OnAttributeChangeData);
+	void OnMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 };

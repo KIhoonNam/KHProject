@@ -90,7 +90,12 @@ void UKHGameplayAbility_FireWeapon::Fire()
 		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 		return;
 	}
-	
+	const UKHAttributeSet_Character* Attributes =	GetCurrentActorInfo()->AbilitySystemComponent->GetSet<UKHAttributeSet_Character>();
+	if (!Attributes)
+	{
+		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
+		return;
+	}
 	if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetCurrentActorInfo()->AvatarActor.Get()))
 		{
 			if (APlayerController* pPS = Cast<APlayerController>(pPlayer->GetController()))
@@ -159,7 +164,7 @@ void UKHGameplayAbility_FireWeapon::Fire()
 						5.0f);
 					if (HitResult.bBlockingHit && HitResult.GetActor())
 					{
-						float fDamage = m_pWeaponData->m_fDamage/Count;
+						float fDamage = m_pWeaponData->m_fDamage*Attributes->GetDamageMultiValue()/Count;
 						if (mapDamage.Contains(HitResult.GetActor()))
 						{
 							mapDamage[HitResult.GetActor()] += fDamage;
@@ -198,8 +203,10 @@ void UKHGameplayAbility_FireWeapon::Fire()
 			
 					ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
 				}
-
-				UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, m_pWeaponData->m_fCoolDown);
+				
+		
+				float fTotalFireCoolDown = m_pWeaponData->m_fCoolDown * Attributes->GetFireCoolMultiValue();
+				UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this,fTotalFireCoolDown);
 				if (DelayTask)
 				{
 					DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_FireWeapon::OnFireCool);

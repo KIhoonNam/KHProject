@@ -8,6 +8,7 @@
 #include "GameplayEffect.h"
 #include "KHCharacterBase.h"
 #include "KHCharacter_Player.h"
+#include "Controller/KHPlayerController_Player.h"
 
 UKHAttributeSet_Character::UKHAttributeSet_Character()
 {
@@ -23,6 +24,8 @@ UKHAttributeSet_Character::UKHAttributeSet_Character()
 	InitXP(0.0f);          
 	InitMaxXP(3.0f);     
 	InitCharacterLevel(1.0f);
+	InitDamageMultiValue(1.0f);     
+	InitFireCoolMultiValue(1.0f);
 
 
 	static ConstructorHelpers::FClassFinder<UGameplayEffect> BP_UpdateXP(TEXT("/Game/GAS/GE_UpdateXP.GE_UpdateXP_C"));
@@ -84,11 +87,7 @@ void UKHAttributeSet_Character::PostGameplayEffectExecute(const FGameplayEffectM
 
 			if (GetHealth() <= 0.0f)
 			{
-			
 				pCharacter->HealthEmpty(Data);
-
-	
-			
 			}
 		}
 	}
@@ -107,6 +106,13 @@ void UKHAttributeSet_Character::PostXPExecute(const FGameplayEffectModCallbackDa
 			
 			float NewLevel = GetCharacterLevel() + 1.0f;
 			SetCharacterLevel(NewLevel);
+			if (AKHCharacter_Player* pPlayer = Cast<AKHCharacter_Player>(GetOwningActor()))
+			{
+				if (AKHPlayerController_Player* pPS = Cast<AKHPlayerController_Player>(pPlayer->GetController()))
+				{
+					pPS->OnLevelUpShowUI();
+				}
+			}
 			if (UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent())
 			{
 				FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
@@ -134,6 +140,8 @@ void UKHAttributeSet_Character::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, XP, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, MaxXP, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, CharacterLevel, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, DamageMultiValue, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UKHAttributeSet_Character, FireCoolMultiValue, COND_None, REPNOTIFY_Always);
 }
 
 void UKHAttributeSet_Character::OnRep_Health(const FGameplayAttributeData& OldHealth)
@@ -174,4 +182,14 @@ void UKHAttributeSet_Character::OnRep_MaxXP(const FGameplayAttributeData& OldMax
 void UKHAttributeSet_Character::OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, CharacterLevel, OldCharacterLevel);
+}
+
+void UKHAttributeSet_Character::OnRep_DamageMultiValue(const FGameplayAttributeData& OldDamageMultiValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, DamageMultiValue, OldDamageMultiValue);
+}
+
+void UKHAttributeSet_Character::OnRep_FireCoolMultiValue(const FGameplayAttributeData& OldFireCoolMultiValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UKHAttributeSet_Character, FireCoolMultiValue, OldFireCoolMultiValue);
 }

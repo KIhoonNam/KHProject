@@ -33,7 +33,7 @@ public:
 
 
 public:
-	
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -97,6 +97,12 @@ protected:
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Look(const FInputActionValue& InputActionValue);
 
+	void Input_LevelOption1();
+	void Input_LevelOption2();
+	void Input_LevelOption3();
+
+	void ProcessLevelOption(int32 Index);
+	
 	void OnDownedTagChanged(FGameplayTag GameplayTag, int count);
 
 	void OnChannelingTagChanged(FGameplayTag GameplayTag, int count);
@@ -119,6 +125,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* IA_Reload;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_LevelOption1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_LevelOption2;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_LevelOption3;
 	
 	bool bIsLocallyTryingToCancel;
 	

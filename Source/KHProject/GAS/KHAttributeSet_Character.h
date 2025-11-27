@@ -61,6 +61,14 @@ public:
     FGameplayAttributeData CharacterLevel;
     ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, CharacterLevel)
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_DamageMultiValue)
+	FGameplayAttributeData DamageMultiValue;
+	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, DamageMultiValue)
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_FireCoolMultiValue)
+	FGameplayAttributeData FireCoolMultiValue;
+	ATTRIBUTE_ACCESSORS(UKHAttributeSet_Character, FireCoolMultiValue)
+	
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
@@ -96,4 +104,10 @@ protected:
    
     UFUNCTION()
     virtual void OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel);
+
+	UFUNCTION()
+	virtual void OnRep_DamageMultiValue(const FGameplayAttributeData& OldDamageMultiValue);
+   
+	UFUNCTION()
+	virtual void OnRep_FireCoolMultiValue(const FGameplayAttributeData& OldFireCoolMultiValue);
 };

@@ -13,6 +13,7 @@
 #include "Anim/KHAnimInstance_Player.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Controller/KHPlayerController_Player.h"
 #include "DataTable/KHDataTable_PlayerAnim.h"
 #include "DataTable/KHDataTable_WeaponData.h"
 #include "Engine/StaticMeshActor.h"
@@ -96,6 +97,9 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 		EnhancedInput->BindAction(IA_Look, ETriggerEvent::Triggered, this, &AKHCharacter_Player::Input_Look);
 		EnhancedInput->BindAction(IA_Revive, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Revive);
 		EnhancedInput->BindAction(IA_Reload, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Reload);
+		EnhancedInput->BindAction(IA_LevelOption1, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_LevelOption1);
+		EnhancedInput->BindAction(IA_LevelOption2, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_LevelOption2);
+		EnhancedInput->BindAction(IA_LevelOption3, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_LevelOption3);
 	
 }
 
@@ -527,6 +531,29 @@ void AKHCharacter_Player::Input_Look(const FInputActionValue& InputActionValue)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(-LookAxisVector.Y);
+	}
+}
+
+void AKHCharacter_Player::Input_LevelOption1()
+{
+	ProcessLevelOption(0);
+}
+
+void AKHCharacter_Player::Input_LevelOption2()
+{
+	ProcessLevelOption(1);
+}
+
+void AKHCharacter_Player::Input_LevelOption3()
+{
+	ProcessLevelOption(2);
+}
+
+void AKHCharacter_Player::ProcessLevelOption(int32 Index)
+{
+	if (AKHPlayerController_Player* pPS = Cast<AKHPlayerController_Player>(Controller))
+	{
+		pPS->SelectUpgradeRow(Index);
 	}
 }
 

@@ -24,7 +24,7 @@ void UKHWidget_Play::NativeConstruct()
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetCurrentAmmoAttribute()).AddUObject(this, &UKHWidget_Play::OnCurrentAmmoChanged);
 			
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetHealthAttribute()).AddUObject(this, &UKHWidget_Play::OnHealthChanged);
-
+			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetMaxHealthAttribute()).AddUObject(this, &UKHWidget_Play::OnMaxHealthChanged);
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetXPAttribute()).AddUObject(this, &UKHWidget_Play::OnXPChanged);
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetMaxXPAttribute()).AddUObject(this, &UKHWidget_Play::OnMaxXPChange);
 			ASC->GetGameplayAttributeValueChangeDelegate(Attributes->GetCharacterLevelAttribute()).AddUObject(this, &UKHWidget_Play::OnLevelChange);
@@ -142,5 +142,14 @@ void UKHWidget_Play::OnLevelChange(const FOnAttributeChangeData& OnAttributeChan
 	if (Text_Level)
 	{
 		Text_Level->SetText(FText::AsNumber(OnAttributeChangeData.NewValue));
+	}
+}
+
+void UKHWidget_Play::OnMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	if (Text_MaxHP)
+	{
+		Text_MaxHP->SetText(FText::AsNumber(OnAttributeChangeData.NewValue));
+		MaxHealthValue = OnAttributeChangeData.NewValue;
 	}
 }
