@@ -7,6 +7,7 @@
 #include "Character/KHCharacterBase.h"
 #include "KHCharacter_MonsterBase.generated.h"
 
+class UKHGameplayAbility_AIRangeAttack;
 /**
  * 
  */
@@ -26,10 +27,15 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TSubclassOf<UKHGameplayAbility_AIMelee> m_pAIMeleeAbility;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+	TSubclassOf<UKHGameplayAbility_AIRangeAttack> m_pAIRangeAbility;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
 	TObjectPtr<UAnimMontage> DieMontage;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USkeletalMeshComponent>	WeaponSkeletalMeshComponent;
 public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayMeleeAttackMontage(UAnimMontage* MontageToPlay);

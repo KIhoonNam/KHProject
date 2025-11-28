@@ -27,6 +27,9 @@ AKHAIController_Monster::AKHAIController_Monster()
 
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+
+
+	
 	if (SightConfig)
 	{
 		SightConfig->SightRadius = 2000.0f; 

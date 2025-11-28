@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 UKHBTTask_Attack::UKHBTTask_Attack()
@@ -23,6 +25,20 @@ EBTNodeResult::Type UKHBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	{
 		return EBTNodeResult::Failed;
 	}
+
+	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+	if (BlackboardComp == nullptr)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	AActor* pTarget = Cast<AActor>(BlackboardComp->GetValueAsObject("TargetPlayer"));
+	if (pTarget == nullptr)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	FRotator FindLookAt = (UKismetMathLibrary::FindLookAtRotation(AIController->GetPawn()->GetActorLocation(), pTarget->GetActorLocation()));
 	
 	APawn* AIPawn = AIController->GetPawn();
 	if (AIPawn == nullptr)
@@ -47,6 +63,7 @@ EBTNodeResult::Type UKHBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	if (bSuccess)
 	{
 
+		AIController->GetPawn()->SetActorRotation(FindLookAt);
 		UE_LOG(LogTemp,Warning,TEXT("Attack"))
 		// 성공적으로 어빌리티를 발동시켰다면, 비헤이비어 트리에 '성공'을 반환합니다.
 		return EBTNodeResult::Succeeded;

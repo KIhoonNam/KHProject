@@ -11,12 +11,14 @@
 #include "KHCharacter_Player.h"
 #include "Components/CapsuleComponent.h"
 #include "GameMode/KHGameMode_Play.h"
+#include "GAS/KHGameplayAbility_AIRangeAttack.h"
 
 
 AKHCharacter_MonsterBase::AKHCharacter_MonsterBase()
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-
+	WeaponSkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponSkeletalMeshComponent"));
+	WeaponSkeletalMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket"));
 	UE_LOG(LogTemp, Warning, TEXT("Character Constructor Called for: %s"), *GetName());
 }
 
@@ -81,17 +83,26 @@ void AKHCharacter_MonsterBase::PossessedBy(AController* NewController)
 				{
 					AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				}
-				
-				AbilitySystemComponent->ApplyModToAttribute(
-					m_StatAttributeSet->GetHealthAttribute(), 
-					EGameplayModOp::Override, 
-					m_StatAttributeSet->GetMaxHealth()
-				);
+
+				if (m_StatAttributeSet)
+				{
+					AbilitySystemComponent->ApplyModToAttribute(
+						m_StatAttributeSet->GetHealthAttribute(), 
+						EGameplayModOp::Override, 
+						m_StatAttributeSet->GetMaxHealth()
+					);
+				}
 			}
 			if (m_pAIMeleeAbility)
 			{
 				FGameplayAbilitySpec MeleeAttackSpec(m_pAIMeleeAbility, 1.0f, -1, this);
 				AbilitySystemComponent->GiveAbility(MeleeAttackSpec);
+			}
+
+			if (m_pAIRangeAbility)
+			{
+				FGameplayAbilitySpec RangeAttackSpec(m_pAIRangeAbility, 1.0f, -1, this);
+				AbilitySystemComponent->GiveAbility(RangeAttackSpec);
 			}
 
 			const UKHAttributeSet_Character* pAttributes  = AbilitySystemComponent->GetSet<UKHAttributeSet_Character>();
