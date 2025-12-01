@@ -116,6 +116,17 @@ void AKHCharacter_MonsterBase::PossessedBy(AController* NewController)
 
 }
 
+FVector AKHCharacter_MonsterBase::GetWeaponAttackLocation() const
+{
+	FVector OutLocation = FVector::ZeroVector;
+	if (WeaponSkeletalMeshComponent)
+	{
+		OutLocation = WeaponSkeletalMeshComponent->GetSocketLocation("ArrowSocket");
+	}
+
+	return OutLocation;
+}
+
 void AKHCharacter_MonsterBase::Die()
 {
 	if (!HasAuthority()) return;

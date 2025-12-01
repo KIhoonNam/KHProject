@@ -48,6 +48,8 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+
+	FVector GetWeaponAttackLocation() const;
 public:
 	void Die();
 

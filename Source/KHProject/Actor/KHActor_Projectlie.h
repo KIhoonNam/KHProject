@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "KHActor_Projectlie.generated.h"
 
+class UGameplayEffect;
 class UProjectileMovementComponent;
 class UStaticMeshComponent;
 
@@ -23,8 +24,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UProjectileMovementComponent> ProjectlieMovementComponent;
-	
+
+	UPROPERTY()
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
 protected:
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -32,6 +36,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+private:
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 };

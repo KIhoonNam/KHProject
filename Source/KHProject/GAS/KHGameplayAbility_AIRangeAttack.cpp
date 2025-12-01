@@ -6,7 +6,7 @@
 #include "AbilityTask_WaitDelay.h"
 #include "AbilityTask_WaitGameplayEvent.h"
 #include "KHCharacter_MonsterBase.h"
-#include "Actor_/KHActor_Projectlie.h"
+#include "Actor/KHActor_Projectlie.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 
@@ -68,12 +68,22 @@ void UKHGameplayAbility_AIRangeAttack::ActivateAbility(const FGameplayAbilitySpe
 
 void UKHGameplayAbility_AIRangeAttack::OnHitCheckEvent(FGameplayEventData Payload)
 {
-	if (AKHActor_Projectlie* pProjectile = GetWorld()->SpawnActor<AKHActor_Projectlie>(ProjectileClass,
-		GetCurrentActorInfo()->AvatarActor->GetActorLocation() + GetCurrentActorInfo()->AvatarActor->GetActorForwardVector() * 100.f,
-		GetCurrentActorInfo()->AvatarActor->GetActorRotation()))
+	if (AKHCharacter_MonsterBase* pOwner = Cast<AKHCharacter_MonsterBase>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		FVector LaunchDirection = GetCurrentActorInfo()->AvatarActor->GetActorForwardVector();
-		pProjectile->ProjectlieMovementComponent->Velocity = LaunchDirection * pProjectile->ProjectlieMovementComponent->InitialSpeed;
+		// You can add any logic here if needed, e.g., logging or effects
+	
+		if (AKHActor_Projectlie* pProjectile = GetWorld()->SpawnActor<AKHActor_Projectlie>(ProjectileClass,
+			pOwner->GetWeaponAttackLocation(),
+			GetCurrentActorInfo()->AvatarActor->GetActorRotation()))
+		{
+			FVector LaunchDirection = GetCurrentActorInfo()->AvatarActor->GetActorForwardVector();
+			pProjectile->ProjectlieMovementComponent->Velocity = LaunchDirection * pProjectile->ProjectlieMovementComponent->InitialSpeed;
+
+			if (DamageEffectClass)
+			{
+				pProjectile->DamageEffectClass = DamageEffectClass;
+			}
+		}
 	}
 	
 }
