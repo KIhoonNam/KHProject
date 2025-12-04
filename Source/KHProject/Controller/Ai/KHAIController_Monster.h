@@ -27,6 +27,8 @@ public:
 	
 	void StopBehaviorTree();
 
+
+	void RunBehaviorTreeParent();
 public:
 
     UPROPERTY(EditDefaultsOnly, Category = "AI")

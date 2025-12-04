@@ -11,7 +11,7 @@ public class KHProject : ModuleRules
 		bLegacyParentIncludePaths = true;
 		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule","OnlineSubsystem","OnlineSubsystemUtils","OnlineSubsystemNull" });
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayAbilities","GameplayTags","AnimGraphRuntime","GameplayTasks","UMG","Slate","SlateCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput","GameplayAbilities","GameplayTags","AnimGraphRuntime","GameplayTasks","UMG","Slate","SlateCore","GameplayTasks" });
 		
 		PublicIncludePaths.AddRange(
 			new string[] {

@@ -74,6 +74,21 @@ void AKHAIController_Monster::StopBehaviorTree()
 	}
 }
 
+void AKHAIController_Monster::RunBehaviorTreeParent()
+{
+	
+	if (AIPerceptionComponent)
+	{
+		AIPerceptionComponent->ForgetAll();
+	}
+	BlackboardComponent->SetValueAsObject("TargetPlayer", nullptr);
+	RunBehaviorTree(BehaviorTreeAsset);
+
+
+
+}
+
+
 void AKHAIController_Monster::OnTargetPerceived(AActor* Actor, FAIStimulus Stimulus)
 {
 	UObject* TargetActorObject = BlackboardComponent->GetValueAsObject(TEXT("TargetPlayer"));

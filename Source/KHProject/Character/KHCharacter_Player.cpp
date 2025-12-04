@@ -86,11 +86,7 @@ void AKHCharacter_Player::SetupPlayerInputComponent(class UInputComponent* Playe
 	{
 		Subsystem->AddMappingContext(DefaultInputMappingContext, 0);
 	}
-
 	
-	
-	
-		
 		EnhancedInput->BindAction(IA_Fire, ETriggerEvent::Started, this, &AKHCharacter_Player::Input_Ability_Pressed, EAbilityInputID::Fire);
 		EnhancedInput->BindAction(IA_Fire, ETriggerEvent::Completed, this, &AKHCharacter_Player::Input_Ability_Released, EAbilityInputID::Fire);
 		EnhancedInput->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AKHCharacter_Player::Input_Move);
@@ -496,6 +492,8 @@ void AKHCharacter_Player::Input_Ability_Released(EAbilityInputID InputID)
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->AbilityLocalInputReleased(static_cast<int32>(InputID));
+
+		UE_LOG(LogTemp,Warning,TEXT("Input Ability Release: %d"), static_cast<int32>(InputID));
 	}
 }
 

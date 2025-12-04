@@ -9,7 +9,10 @@
 #include "GameplayEffectExtension.h"
 #include "KHAttributeSet_Character.h"
 #include "KHCharacter_Player.h"
+#include "UnrealNetwork.h"
+#include "Actor/KHActor_Spawner.h"
 #include "Components/CapsuleComponent.h"
+#include "Controller/Ai/KHAIController_Monster.h"
 #include "GameMode/KHGameMode_Play.h"
 #include "GAS/KHGameplayAbility_AIRangeAttack.h"
 
@@ -54,6 +57,13 @@ void AKHCharacter_MonsterBase::Multicast_MonsterDie_Implementation(UAnimMontage*
 		GetMesh()->SetSimulatePhysics(true);
 		
 	}
+}
+
+void AKHCharacter_MonsterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKHCharacter_MonsterBase, bIsActive);
 }
 
 void AKHCharacter_MonsterBase::BeginPlay()
@@ -176,7 +186,10 @@ void AKHCharacter_MonsterBase::HealthEmpty(const FGameplayEffectModCallbackData&
 	FTimerHandle DeadTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle,[this]()
 	{
-		Destroy();
+		
+
+
+		SetActiveMonster(false);
 	},5.0f,false);
 
 	if (HasAuthority())
@@ -210,5 +223,80 @@ void AKHCharacter_MonsterBase::OnHit(const FGameplayEffectModCallbackData& Data)
 			FGameplayTag::RequestGameplayTag(FName("GameplayCue.Combat.Damage")), 
 			CueParams
 		);
+	}
+}
+
+void AKHCharacter_MonsterBase::SetActiveMonster(bool _active)
+{
+	if (HasAuthority())
+	{
+		bIsActive = _active;
+		OnRep_IsActive();
+		if (_active)
+		{
+			
+			if (AbilitySystemComponent && m_StatAttributeSet)
+			{
+				float MaxHealth = m_StatAttributeSet->GetMaxHealth();
+				AbilitySystemComponent->ApplyModToAttribute(m_StatAttributeSet->GetHealthAttribute(), EGameplayModOp::Override, MaxHealth);
+            
+
+				AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Status.Die")));
+			}
+
+
+			if (GetController() == nullptr)
+			{
+				SpawnDefaultController();
+			}
+			else if (AKHAIController_Monster* AIC = Cast<AKHAIController_Monster>(GetController()))
+			{
+				AIC->RunBehaviorTreeParent();
+			}
+		}
+		else
+		{
+			SetActorHiddenInGame(true);
+			SetActorEnableCollision(false);
+			SetActorTickEnabled(false);
+
+			if (m_pOwnerSpawner)
+			{
+				m_pOwnerSpawner->ReturnMonster(this);
+			}
+		}
+	}
+}
+
+void AKHCharacter_MonsterBase::OnRep_IsActive()
+{
+	if (bIsActive)
+	{
+		SetActorHiddenInGame(false);
+		SetActorEnableCollision(true);
+		SetActorTickEnabled(true);
+
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionProfileName(TEXT("CharacterMesh")); // 원래 프로필로 복구
+		GetMesh()->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+		GetMesh()->SetRelativeLocationAndRotation(FVector(0,0,-88), FRotator(0,0,0)); 
+		
+		if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+		{
+			AnimInst->StopAllMontages(0.0f);
+		}
+
+		if (m_pOwnerSpawner)
+		{
+			SetActorLocation(m_pOwnerSpawner->GetActorLocation());
+		}
+	}
+	else
+	{
+		SetActorHiddenInGame(true);
+		SetActorEnableCollision(false);
+		SetActorTickEnabled(false);
 	}
 }

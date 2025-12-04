@@ -17,15 +17,20 @@ public:
 	// Sets default values for this actor's properties
 	AKHActor_Spawner();
 
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY()
+	TArray<TObjectPtr<AKHCharacter_MonsterBase>> SpawnedMonsters;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 public:
 	void SpawnEnemy(TSubclassOf<AKHCharacter_MonsterBase> _monster);
-	
+
+	void ReturnMonster(AKHCharacter_MonsterBase* _monster);
 };

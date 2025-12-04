@@ -22,9 +22,10 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 
+
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Config")
@@ -45,9 +46,13 @@ protected:
 	FWeaponData* m_pWeaponData;
 
 
+	bool IsInput = false;
 protected:
 	UFUNCTION()
 	void OnFireCool();
 
 	void Fire();
+
+	UFUNCTION()
+	void InputReleasedTask(float TimeHeld);
 };

@@ -32,10 +32,26 @@ void AKHActor_Spawner::SpawnEnemy(TSubclassOf<AKHCharacter_MonsterBase> _monster
 {
 	if (_monster)
 	{
-		if (AKHCharacter_MonsterBase* pMonster = GetWorld()->SpawnActor<AKHCharacter_MonsterBase>(_monster, GetActorLocation(), GetActorRotation()))
+		if (SpawnedMonsters.IsEmpty())
 		{
-			
+			if (AKHCharacter_MonsterBase* pMonster = GetWorld()->SpawnActor<AKHCharacter_MonsterBase>(_monster, GetActorLocation(), GetActorRotation()))
+			{
+				pMonster->m_pOwnerSpawner = this;
+			}
+		}
+		else
+		{
+			if (AKHCharacter_MonsterBase* PoolMonster = SpawnedMonsters.Pop())
+			{
+				PoolMonster->SetActiveMonster(true);
+			}
+			UE_LOG(LogTemp,Warning,TEXT("ObjectPool Num %d Name %s"),SpawnedMonsters.Num(),*this->GetName());
 		}
 	}
+}
+
+void AKHActor_Spawner::ReturnMonster(AKHCharacter_MonsterBase* _monster)
+{
+	SpawnedMonsters.Emplace(_monster);
 }
 

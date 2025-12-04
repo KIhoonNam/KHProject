@@ -7,6 +7,7 @@
 #include "KHAttributeSet_Character.h"
 #include "GameplayAbilitySet.h"
 #include "KHCharacter_Player.h"
+#include "AbilityTask_WaitInputRelease.h"
 #include "DataTable/KHDataTable_PlayerAnim.h"
 #include "KHProject/Character/KHCharacterBase.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -53,24 +54,36 @@ void UKHGameplayAbility_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHa
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 
-	if (HasAuthority(&ActivationInfo))
-	{
-		Fire();
-	}
-	else
-	{
+	UAbilityTask_WaitInputRelease* WaitInputReleaseTask = UAbilityTask_WaitInputRelease::WaitInputRelease(this);
 
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	if (WaitInputReleaseTask)
+	{
+		WaitInputReleaseTask->OnRelease.AddDynamic(this, &UKHGameplayAbility_FireWeapon::InputReleasedTask);
+		WaitInputReleaseTask->ReadyForActivation();
 	}
 	
+
+	if (HasAuthority(&ActivationInfo))
+	{
+		IsInput = true;
+		Fire();
+	}
+	// else
+	// {
+	//
+	// 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	// }
+	
 }
+
+
 
 void UKHGameplayAbility_FireWeapon::OnFireCool()
 {
 	if (m_pWeaponData)
 	{
 		bool isAuto = m_pWeaponData->m_IsAuto;
-		if (isAuto && GetCurrentAbilitySpec()->InputPressed)
+		if (isAuto && IsInput)
 		{
 			Fire();
 		}
@@ -203,12 +216,13 @@ void UKHGameplayAbility_FireWeapon::Fire()
 			
 					ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), SpecHandle, TargetDataHandle);
 				}
-				
-		
+				FGameplayCueParameters CueParams;
+				CueParams.Location = WeaponMuzzleLocation;
+				GetCurrentActorInfo()->AbilitySystemComponent->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag("GameplayCue.Combat.FireWeapon"),CueParams);
 				float fTotalFireCoolDown = m_pWeaponData->m_fCoolDown * Attributes->GetFireCoolMultiValue();
 				UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this,fTotalFireCoolDown);
 				if (DelayTask)
-				{
+				{ 
 					DelayTask->OnFinish.AddDynamic(this, &UKHGameplayAbility_FireWeapon::OnFireCool);
 					DelayTask->ReadyForActivation();
 				}
@@ -218,6 +232,14 @@ void UKHGameplayAbility_FireWeapon::Fire()
 				}
 			}
 		}
+}
+
+void UKHGameplayAbility_FireWeapon::InputReleasedTask(float TimeHeld)
+{
+	UE_LOG(LogTemp,Warning,TEXT("Release"))
+	IsInput = false;
+
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 }
 
 

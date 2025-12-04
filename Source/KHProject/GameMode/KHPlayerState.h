@@ -19,7 +19,7 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_IsDowned)
 	bool bIsDown;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated,EditDefaultsOnly)
 	EWeaponType m_eWeaponType = EWeaponType::Shotgun;
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;

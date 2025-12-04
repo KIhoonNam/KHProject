@@ -7,6 +7,7 @@
 #include "Character/KHCharacterBase.h"
 #include "KHCharacter_MonsterBase.generated.h"
 
+class AKHActor_Spawner;
 class UKHGameplayAbility_AIRangeAttack;
 /**
  * 
@@ -36,12 +37,21 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USkeletalMeshComponent>	WeaponSkeletalMeshComponent;
+
+	UPROPERTY()
+	TObjectPtr<AKHActor_Spawner> m_pOwnerSpawner;
+
+	UPROPERTY(ReplicatedUsing= OnRep_IsActive)
+	bool bIsActive;
+
 public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayMeleeAttackMontage(UAnimMontage* MontageToPlay);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_MonsterDie(UAnimMontage* MontageToPlay);
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 public:
 	virtual void BeginPlay() override;
 
@@ -56,4 +66,9 @@ public:
 	virtual void HealthEmpty(const FGameplayEffectModCallbackData& Data) override;
 
 	virtual void OnHit(const FGameplayEffectModCallbackData& Data) override;
+
+	void SetActiveMonster(bool _active);
+
+	UFUNCTION()
+	void OnRep_IsActive();
 };

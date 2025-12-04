@@ -135,6 +135,14 @@ void AKHGameMode_Play::OnMonsterKilled()
 			);
 		}
 	}
+	else
+	{
+		if (AKHActor_Spawner* pSpawner = RandomSpawner())
+		{
+			pSpawner->SpawnEnemy(m_WaveData->EnemyToSpawn);
+			m_AlliveMonsterCount++;
+		}
+	}
 }
 
 void AKHGameMode_Play::GameOver()
