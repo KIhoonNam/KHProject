@@ -7,6 +7,8 @@
 #include "AbilitySystemInterface.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 
@@ -40,7 +42,7 @@ EBTNodeResult::Type UKHBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 	FRotator FindLookAt = (UKismetMathLibrary::FindLookAtRotation(AIController->GetPawn()->GetActorLocation(), pTarget->GetActorLocation()));
 	
-	APawn* AIPawn = AIController->GetPawn();
+	ACharacter* AIPawn = Cast<ACharacter>(AIController->GetPawn());
 	if (AIPawn == nullptr)
 	{
 		return EBTNodeResult::Failed;
@@ -57,17 +59,39 @@ EBTNodeResult::Type UKHBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	{
 		return EBTNodeResult::Failed;
 	}
-	
-	bool bSuccess = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackAbilityTag));
 
-	if (bSuccess)
+	if (AIController->GetFocusActor() == nullptr)
 	{
+		AIController->SetFocus(pTarget);
 
-		AIController->GetPawn()->SetActorRotation(FindLookAt);
-		UE_LOG(LogTemp,Warning,TEXT("Attack"))
-		// 성공적으로 어빌리티를 발동시켰다면, 비헤이비어 트리에 '성공'을 반환합니다.
-		return EBTNodeResult::Succeeded;
+		AIPawn->GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		AIPawn->GetCharacterMovement()->bOrientRotationToMovement = false;
+		AIPawn->GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+		
 	}
+
+	float fDistnace = AIPawn->GetActorRotation().Yaw -FindLookAt.Yaw;
+	fDistnace = FMath::Abs(fDistnace);
+	UE_LOG(LogTemp,Warning,TEXT("Distance : %f"),fDistnace)
+	if (fDistnace <= 5.0f)
+	{
+		bool bSuccess = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackAbilityTag));
+
+		if (bSuccess)
+		{
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			AIPawn->GetCharacterMovement()->bUseControllerDesiredRotation = false;
+			AIPawn->GetCharacterMovement()->bOrientRotationToMovement = true;
+			AIPawn->GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+			//	AIController->GetPawn()->SetActorRotation(FindLookAt);
+			UE_LOG(LogTemp,Warning,TEXT("Attack"))
+			// 성공적으로 어빌리티를 발동시켰다면, 비헤이비어 트리에 '성공'을 반환합니다.
+			return EBTNodeResult::Succeeded;
+		}
+	}
+	
+	
+
 
 	// (예: 쿨다운 중이거나, 어빌리티가 없어서) 발동에 실패했다면 '실패'를 반환합니다.
 	return EBTNodeResult::Failed;

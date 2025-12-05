@@ -31,7 +31,7 @@ public:
 	TWeakObjectPtr<UKHWidget_Upgrade> m_pCurrentUpgradeWidget;
 public:
 	virtual void BeginPlay() override;
-	
+	virtual void PlayerTick(float DeltaTime) override;
 
 
 public:

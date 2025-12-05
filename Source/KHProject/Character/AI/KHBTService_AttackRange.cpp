@@ -8,6 +8,7 @@
 #include "AIController.h"
 #include "KHCharacter_Player.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 
@@ -28,7 +29,7 @@ void UKHBTService_AttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 		return;
 	}
 
-	APawn* AIPawn = AIController->GetPawn();
+	ACharacter* AIPawn = Cast<ACharacter>(AIController->GetPawn());
 	if (AIPawn == nullptr)
 	{
 		return;
@@ -54,10 +55,25 @@ void UKHBTService_AttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 		const bool bInRange = (Distance <= AttackRange);
 		
 		Blackboard->SetValueAsBool("InAttackRange", bInRange);
+
+		if (!bInRange && AIController->GetFocusActor())
+		{
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			AIPawn->GetCharacterMovement()->bUseControllerDesiredRotation = false;
+			AIPawn->GetCharacterMovement()->bOrientRotationToMovement = true;
+			AIPawn->GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+		}
 	}
 	else
 	{
-		Blackboard->SetValueAsBool("InAttackRange", false);
+		if ( AIController->GetFocusActor())
+		{
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			AIPawn->GetCharacterMovement()->bUseControllerDesiredRotation = false;
+			AIPawn->GetCharacterMovement()->bOrientRotationToMovement = true;
+			AIPawn->GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+			Blackboard->SetValueAsBool("InAttackRange", false);
+		}
 	}
 }
 

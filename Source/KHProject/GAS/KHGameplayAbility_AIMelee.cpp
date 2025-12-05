@@ -8,6 +8,7 @@
 #include "AIController.h"
 #include "KHCharacter_MonsterBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Controller/Ai/KHAIController_Monster.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -33,6 +34,13 @@ void UKHGameplayAbility_AIMelee::ActivateAbility(const FGameplayAbilitySpecHandl
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+	AKHAIController_Monster* pAIController = Cast<AKHAIController_Monster>(AICharacter->GetController());
+	if (!pAIController)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
 
 	AICharacter->Multicast_PlayMeleeAttackMontage(AttackMontage);
 

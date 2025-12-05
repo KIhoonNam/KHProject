@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerState.h"
 #include "GameMode/KHGameMode_Lobby.h"
 #include "GameMode/KHGameState_Lobby.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "UI/KHHUD_Lobby.h"
 #include "UI/Widget/KHWidget_Lobby.h"
 #include "UI/Widget/KHWidget_Upgrade.h"
@@ -30,6 +31,34 @@ void AKHPlayerController_Player::BeginPlay()
 	}
 }
 
+void AKHPlayerController_Player::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+
+	if (APawn* MyPawn = GetPawn())
+	{
+		FHitResult HitResult;
+		GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+
+		if (HitResult.bBlockingHit)
+		{
+			FVector MouseLocation = HitResult.Location;
+			FVector PawnLocation = MyPawn->GetActorLocation();
+			
+			MouseLocation.Z = PawnLocation.Z;
+			
+			
+			
+			FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, MouseLocation);
+
+			TargetRotation.Roll = 0.0f;
+			TargetRotation.Pitch = 0.0f;
+			FRotator NewRotation = FMath::RInterpTo(MyPawn->GetActorRotation(), TargetRotation, DeltaTime, 15.0f);
+			
+			MyPawn->SetActorRotation(NewRotation);
+		}
+	}
+}
 
 
 void AKHPlayerController_Player::Client_LevelUpShowUI_Implementation(const TArray<FName>& arrUpgradeDataName)

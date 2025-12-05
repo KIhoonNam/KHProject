@@ -17,6 +17,7 @@ enum class EWeaponType : uint8
 	Rifle     UMETA(DisplayName = "Rifle"),
 	Gun      UMETA(DisplayName = "Gun"),
 	Shotgun        UMETA(DisplayName = "Shotgun"),
+	Sword        UMETA(DisplayName = "Sword"),
 };
 
 USTRUCT(BlueprintType)

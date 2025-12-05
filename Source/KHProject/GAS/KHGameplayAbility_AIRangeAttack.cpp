@@ -7,6 +7,7 @@
 #include "AbilityTask_WaitGameplayEvent.h"
 #include "KHCharacter_MonsterBase.h"
 #include "Actor/KHActor_Projectlie.h"
+#include "Controller/Ai/KHAIController_Monster.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 
@@ -33,10 +34,17 @@ void UKHGameplayAbility_AIRangeAttack::ActivateAbility(const FGameplayAbilitySpe
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+	AKHAIController_Monster* pAIController = Cast<AKHAIController_Monster>(AICharacter->GetController());
+	if (!pAIController)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 
+	pAIController->ClearFocus(EAIFocusPriority::Gameplay);
 	AICharacter->Multicast_PlayMeleeAttackMontage(AttackMontage);
 
-
+	
 	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this,               
 		HitCheckEventTag,   
